@@ -2,31 +2,34 @@
 import { supabase } from "../database/supabaseClient"
 
 export const fetchQuestions = async (tag: string | null | undefined) => {
+    if (tag&&typeof tag!=='string') {
+        throw new Error('Invalid tag')
+        return Promise.reject('Invalid tag')
+    }
     if (tag) {
-        // console.log(tag)
+
         const { data: tagData, error: tagError } = await supabase
             .from('tags')
             .select('id')
             .ilike('tag', `%${tag}%`)
-            .single();
+            
 
         if (tagError) {
             console.error('Error fetching tag:', tagError);
-            return;
+            return Promise.reject(tagError)
+
         }
 
-        const tagId = tagData?.id;
+        const tagIds = tagData?.map((x) => x.id);
         const { data: questionIdData, error: questionError } = await supabase
             .from('question_tags')
             .select('question_id')
-            .eq('tag_id', tagId);
+            .in('tag_id', tagIds);
 
         if (questionError) {
             console.error('Error fetching question Ids:', questionError);
-            return;
+            return Promise.reject(questionError)
         }
-        // console.log(questionIdData)
-        // console.log(questionIdData.map((x) => x.question_id))
         const { data: questionsData, error: questionsError } = await supabase
             .from('questions')
             .select('*')
@@ -38,7 +41,7 @@ export const fetchQuestions = async (tag: string | null | undefined) => {
 
         if (questionsError) {
             console.error('Error fetching questions', questionsError)
-            return;
+            return Promise.reject(questionsError)
         }
 
     }
@@ -51,7 +54,7 @@ export const fetchQuestions = async (tag: string | null | undefined) => {
             return data
         }
         if (error) {
-            console.error(error)
+            return error
         }
     }
 }

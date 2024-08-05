@@ -1,7 +1,7 @@
 
-import { describe, it, expect } from 'vitest';
-import { supabase } from '../src/database/supabaseClient';
+import { describe, expect, it } from 'vitest';
 import { fetchQuestions } from '../src/models/questions';
+import { PostgrestError } from '@supabase/supabase-js';
 
 
 
@@ -30,7 +30,7 @@ describe('fetchQuestions', () => {
 
     });
 
-    it('should fetch questions when a partial tag match is found', async ()=>{
+    it('should fetch questions when a partial tag match is found', async () => {
         const questions = await fetchQuestions('pyth');
         const expectedQuestions = [
             {
@@ -75,10 +75,20 @@ describe('fetchQuestions', () => {
         expect(questions).toEqual(expectedQuestions);
     });
 
-    it('should handle errors when fetching tag', async () => {
-        const tag = 'NonExistentTag';
-        const questions = await fetchQuestions(tag);
-
-        expect(questions).toBeUndefined();
+    it('should error if queried with invalid tags', async () => {
+        try{
+            const tag = 9;
+            const questions = await fetchQuestions(tag as any);
+            expect(questions).toBeUndefined();
+        }catch(error){
+           
+            console.log(error)
+            expect((error as Error).message).toBe('Invalid tag')
+        }
+        
     });
+
+
+
+
 });

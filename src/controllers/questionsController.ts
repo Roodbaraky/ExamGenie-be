@@ -1,5 +1,6 @@
 import { Request, Response } from "express"
 import { fetchQuestions } from "../models/questions"
+import { PostgrestError } from "@supabase/supabase-js"
 
 export const getQuestions = async (req: Request, res: Response) => {
 
@@ -9,11 +10,28 @@ export const getQuestions = async (req: Request, res: Response) => {
 
     try {
         const questions = await fetchQuestions(tag)
-        res
-            .status(200)
-            .send(questions)
+        if (Array.isArray(questions) && !questions.length) {
+            res
+                .status(404)
+                .send('Questions corresponding to tag not found')
+        }
+        else {
+
+            res
+                .status(200)
+                .send(questions)
+        }
     } catch (error) {
-        console.error(error)
+        if ((error as PostgrestError).details === 'The result contains 0 rows') {
+            res
+                .status(404)
+                .send('Results not found')
+        }
+        else {
+            res
+                .status(500)
+                .send('Internal Server Error')
+        }
     }
 
 }
