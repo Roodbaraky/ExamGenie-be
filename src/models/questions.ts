@@ -3,7 +3,7 @@ import { supabase } from "../database/supabaseClient"
 
 export const fetchQuestions = async (tag: string | null | undefined) => {
     if (tag) {
-        console.log(tag)
+        // console.log(tag)
         const { data: tagData, error: tagError } = await supabase
             .from('tags')
             .select('id')
@@ -25,18 +25,18 @@ export const fetchQuestions = async (tag: string | null | undefined) => {
             console.error('Error fetching question Ids:', questionError);
             return;
         }
-        console.log(questionIdData)
-      console.log(questionIdData.map((x)=>x.question_id))
-        const {data:questionsData, error:questionsError} = await supabase
-        .from('questions')
-        .select('*')
-        .in('id', questionIdData.map((x)=>x.question_id))
+        // console.log(questionIdData)
+        // console.log(questionIdData.map((x) => x.question_id))
+        const { data: questionsData, error: questionsError } = await supabase
+            .from('questions')
+            .select('*')
+            .in('id', questionIdData.map((x) => x.question_id))
 
-        if (questionsData){
+        if (questionsData) {
             return questionsData
         }
 
-        if (questionsError){
+        if (questionsError) {
             console.error('Error fetching questions', questionsError)
             return;
         }
