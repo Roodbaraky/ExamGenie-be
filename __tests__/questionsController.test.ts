@@ -6,8 +6,27 @@ import { getQuestions } from '../src/controllers/questionsController';
 
 app.use(express.json());
 app.get('/questions', getQuestions);
+type Tag = {
+    tag: string
+}
 
+interface Question {
+    id: number
+    difficulty: string
+    tags: Tag[]
+}
 
+const validateQuestionObject = (question: Question, difficulty: string | null = null, tag: string | null = null) => {
+    expect(question).toMatchObject({
+        id: expect.any(Number),
+        difficulty: difficulty ? difficulty : expect.any(String),
+        tags: expect.arrayContaining([
+            expect.objectContaining({
+                tag: tag ? expect.stringContaining(tag) : expect.any(String)
+            })
+        ])
+    });
+};
 
 describe('GET /questions', () => {
     it('should fetch questions by tag', async () => {
@@ -26,14 +45,9 @@ describe('GET /questions', () => {
 
     it('should fetch questions by difficulty', async () => {
         const response = await request(app).get('/questions').query({ difficulty: 'foundation' });
-
         expect(response.status).toBe(200);
         response.body.forEach(question =>
-            expect(question).toMatchObject({
-                id: expect.any(Number),
-                difficulty: 'foundation',
-                tags: expect.any(Array)
-            })
+            validateQuestionObject(question, 'foundation')
         );
     });
 
@@ -41,30 +55,18 @@ describe('GET /questions', () => {
         const response = await request(app).get('/questions').query({ tag: 'Pythagoras', difficulty: 'foundation' });
         expect(response.status).toBe(200);
         response.body.forEach(question =>
-            expect(question).toMatchObject({
-                id: expect.any(Number),
-                difficulty: 'foundation',
-                tags: expect.arrayContaining([
-                    expect.objectContaining({ tag: expect.stringContaining('Pythagoras') })
-                ])
-            }))
+            validateQuestionObject(question, 'foundation', 'Pythagoras'))
     });
 
     it('should fetch all questions when no tag or difficulty is provided', async () => {
         const response = await request(app).get('/questions');
         expect(response.status).toBe(200);
-        expect(response.body).toEqual(expect.arrayContaining([
-            expect.objectContaining({
-                id: expect.any(Number),
-                difficulty: expect.any(String),
-                tags: expect.arrayContaining([expect.objectContaining({ tag: expect.any(String) })])
-            })
-        ]));
+        response.body.forEach(question =>
+            validateQuestionObject(question))
     });
 
     it('should return 400 if queried with an invalid tag', async () => {
         const response = await request(app).get('/questions').query({ tag: '123' });
-
         expect(response.status).toBe(400);
         expect(response.text).toContain('Invalid tag');
     });
