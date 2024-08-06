@@ -40,7 +40,6 @@ describe('GET /questions', () => {
     it('should fetch questions by tag and difficulty', async () => {
         const response = await request(app).get('/questions').query({ tag: 'Pythagoras', difficulty: 'foundation' });
         expect(response.status).toBe(200);
-        expect(response.status).toBe(200);
         response.body.forEach(question =>
             expect(question).toMatchObject({
                 id: expect.any(Number),
