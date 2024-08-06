@@ -1,7 +1,6 @@
 
 import { describe, expect, it } from 'vitest';
 import { fetchQuestions, isDifficultyValid } from '../src/models/questions';
-import { resolveAny } from 'dns';
 
 describe('isDifficultyValid', () => {
     it('should return false for non-string difficulty', async () => {
@@ -49,22 +48,6 @@ describe('isDifficultyValid', () => {
         expect(result).toBe(true);
     });
     
-    //Not sure about these, where should I handle empty difficulty?
-    //Needs to not throw error if omitted, because we don't have to query by difficulty
-    // it('should return true for empty difficulty',  () => {
-    //     const result = await isDifficultyValid('');
-    //     expect(result).toBe(true);
-    // });
-
-    // it('should return true for null difficulty',  () => {
-    //     const result = await isDifficultyValid(null as any);
-    //     expect(result).toBe(true);
-    // });
-
-    // it('should return true for undefined difficulty',  () => {
-    //     const result = await isDifficultyValid(undefined as any);
-    //     expect(result).toBe(true);
-    // });
 })
 
 describe('fetchQuestions', () => {

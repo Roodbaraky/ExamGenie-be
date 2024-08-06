@@ -1,9 +1,8 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
-import request from 'supertest';
 import express from 'express';
-import { getQuestions } from '../src/controllers/questionsController';
-import * as questionModel from '../src/models/questions';
+import request from 'supertest';
+import { describe, expect, it } from 'vitest';
 import { app } from '../src';
+import { getQuestions } from '../src/controllers/questionsController';
 
 app.use(express.json());
 app.get('/questions', getQuestions);
