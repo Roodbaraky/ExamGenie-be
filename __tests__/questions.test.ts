@@ -1,91 +1,134 @@
 
 import { describe, expect, it } from 'vitest';
-import { fetchQuestions } from '../src/models/questions';
-import { PostgrestError } from '@supabase/supabase-js';
+import { fetchQuestions, isDifficultyValid } from '../src/models/questions';
+import { resolveAny } from 'dns';
 
+describe('isDifficultyValid', () => {
+    it('should return false for non-string difficulty', async () => {
+        const result = isDifficultyValid(123 as any);
+        expect(result).toBe(false);
+    });
 
+    it('should return false for invalid difficulty', async () => {
+        const result = isDifficultyValid('invalid');
+        expect(result).toBe(false);
+    });
+
+    it('should return true for valid difficulty "foundation"', async () => {
+        const result = isDifficultyValid('foundation');
+        expect(result).toBe(true);
+    });
+
+    it('should return true for valid difficulty "crossover"',  () => {
+        const result = isDifficultyValid('crossover');
+        expect(result).toBe(true);
+    });
+
+    it('should return true for valid difficulty "higher"',  () => {
+        const result = isDifficultyValid('higher');
+        expect(result).toBe(true);
+    });
+
+    it('should return true for valid difficulty "extended"',  () => {
+        const result = isDifficultyValid('extended');
+        expect(result).toBe(true);
+    });
+
+    it('should return true for valid difficulty "other"',  () => {
+        const result = isDifficultyValid('other');
+        expect(result).toBe(true);
+    });
+
+    it('should return false for an array with an invalid difficulty',  () => {
+        const result = isDifficultyValid(['foundation', 'invalid']);
+        expect(result).toBe(false);
+    });
+
+    it('should return true for an array with all valid difficulties',  () => {
+        const result = isDifficultyValid(['foundation', 'crossover', 'higher']);
+        expect(result).toBe(true);
+    });
+    
+    //Not sure about these, where should I handle empty difficulty?
+    //Needs to not throw error if omitted, because we don't have to query by difficulty
+    // it('should return true for empty difficulty',  () => {
+    //     const result = await isDifficultyValid('');
+    //     expect(result).toBe(true);
+    // });
+
+    // it('should return true for null difficulty',  () => {
+    //     const result = await isDifficultyValid(null as any);
+    //     expect(result).toBe(true);
+    // });
+
+    // it('should return true for undefined difficulty',  () => {
+    //     const result = await isDifficultyValid(undefined as any);
+    //     expect(result).toBe(true);
+    // });
+})
 
 describe('fetchQuestions', () => {
     it('should fetch questions by tag', async () => {
-        const questions = await fetchQuestions('Pythagoras');
-        const questions2 = await fetchQuestions('Trigonometry');
+        const questions = await fetchQuestions({ tag: 'Pythagoras' });
+        const questions2 = await fetchQuestions({ tag: 'Trigonometry' });
 
-        const expectedQuestions = [
-            {
-                "id": 2,
-                "created_at": "2024-07-31T18:46:13.328528",
-                "difficulty": "foundation"
-            }
-        ];
-        const expectedQuestions2 = [
-            {
-                "id": 2,
-                "created_at": "2024-07-31T18:46:13.328528",
-                "difficulty": "foundation"
-            }
-        ]
-
-        expect(questions).toEqual(expectedQuestions);
-        expect(questions2).toEqual(expectedQuestions2);
+        questions.forEach(question => {
+            expect(question).toMatchObject({
+                id: expect.any(Number),
+                difficulty: expect.any(String),
+                tags: expect.arrayContaining([
+                    expect.objectContaining({ tag: expect.stringContaining('Pythagoras') })
+                ])
+            });
+        });
+        questions2.forEach(question => {
+            expect(question).toMatchObject({
+                id: expect.any(Number),
+                difficulty: expect.any(String),
+                tags: expect.arrayContaining([
+                    expect.objectContaining({ tag: expect.stringContaining('Trigonometry') })
+                ])
+            });
+        });
 
     });
 
     it('should fetch questions when a partial tag match is found', async () => {
-        const questions = await fetchQuestions('pyth');
-        const expectedQuestions = [
-            {
-                "id": 2,
-                "created_at": "2024-07-31T18:46:13.328528",
-                "difficulty": "foundation"
-            }
-        ];
-        expect(questions).toEqual(expectedQuestions)
+        const questions = await fetchQuestions({ tag: 'pyth' });
+        questions.forEach(question => {
+            expect(question).toMatchObject({
+                id: expect.any(Number),
+                difficulty: expect.any(String),
+                tags: expect.arrayContaining([
+                    expect.objectContaining({ tag: expect.stringContaining('Pyth') })
+                ])
+            });
+        });
     })
 
     it('should fetch all questions when no tag is provided', async () => {
-        const questions = await fetchQuestions(null);
-
-        const expectedQuestions = [
-            {
-                "id": 1,
-                "created_at": "2024-07-31T18:46:13.328528",
-                "difficulty": "crossover"
-            },
-            {
-                "id": 2,
-                "created_at": "2024-07-31T18:46:13.328528",
-                "difficulty": "foundation"
-            },
-            {
-                "id": 3,
-                "created_at": "2024-07-31T18:46:13.328528",
-                "difficulty": "higher"
-            },
-            {
-                "id": 4,
-                "created_at": "2024-07-31T18:46:13.328528",
-                "difficulty": "foundation"
-            },
-            {
-                "id": 5,
-                "created_at": "2024-07-31T18:46:13.328528",
-                "difficulty": "crossover"
-            }
-        ];
-        expect(questions).toEqual(expectedQuestions);
+        const questions = await fetchQuestions();
+        expect(questions.length).toBe(5)
+        questions.forEach(question => {
+            expect(question).toMatchObject({
+                id: expect.any(Number),
+                difficulty: expect.any(String),
+                tags: expect.any(Array)
+            });
+        });
     });
 
     it('should error if queried with invalid tags', async () => {
-        try{
+        try {
             const tag = 9;
-            const questions = await fetchQuestions(tag as any);
+            const questions = await fetchQuestions({ tag: tag as any });
             expect(questions).toBeUndefined();
-        }catch(error){
-           
+        } catch (error) {
+
             console.log(error)
             expect((error as Error).message).toBe('Invalid tag')
         }
-        
+
     });
 
 

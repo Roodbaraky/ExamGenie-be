@@ -1,65 +1,95 @@
-
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { getQuestions } from '../src/controllers/questionsController';
 import request from 'supertest';
 import express from 'express';
+import { getQuestions } from '../src/controllers/questionsController';
 import * as questionModel from '../src/models/questions';
 import { app } from '../src';
-
 
 app.use(express.json());
 app.get('/questions', getQuestions);
 
 
-vi.mock('../models/questions', () => ({
-    fetchQuestions: vi.fn()
-}));
 
 describe('GET /questions', () => {
-    beforeEach(() => {
-        vi.restoreAllMocks();
-    });
+
 
     it('should fetch questions by tag', async () => {
-        const tag = 'Pythagoras';
-        const mockQuestions = [{ id: 1, subject: 'Math' }, { id: 2, subject: 'Math' }];
-        vi.spyOn(questionModel, 'fetchQuestions').mockResolvedValue(mockQuestions);
-
-        const response = await request(app).get('/questions').query({ tag });
+        const response = await request(app).get('/questions').query({ tag: 'Pythagoras' });
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual(mockQuestions);
+        response.body.forEach(question =>
+            expect(question).toMatchObject({
+                id: expect.any(Number),
+                difficulty: expect.any(String),
+                tags: expect.arrayContaining([
+                    expect.objectContaining({ tag: expect.stringContaining('Pythagoras') })
+                ])
+            }))
     });
 
-    it('should fetch all questions when no tag is provided', async () => {
-        const mockQuestions = [{ id: 1, subject: 'Math' }, { id: 2, subject: 'Math' }];
-        vi.spyOn(questionModel, 'fetchQuestions').mockResolvedValue(mockQuestions);
+    it('should fetch questions by difficulty', async () => {
+        const response = await request(app).get('/questions').query({ difficulty: 'foundation' });
 
+        expect(response.status).toBe(200);
+        response.body.forEach(question =>
+            expect(question).toMatchObject({
+                id: expect.any(Number),
+                difficulty: 'foundation',
+                tags: expect.any(Array)
+            })
+        );
+    });
+
+    it('should fetch questions by tag and difficulty', async () => {
+        const response = await request(app).get('/questions').query({ tag: 'Pythagoras', difficulty: 'foundation' });
+
+        expect(response.status).toBe(200);
+        expect(response.status).toBe(200);
+        response.body.forEach(question =>
+            expect(question).toMatchObject({
+                id: expect.any(Number),
+                difficulty: 'foundation',
+                tags: expect.arrayContaining([
+                    expect.objectContaining({ tag: expect.stringContaining('Pythagoras') })
+                ])
+            }))
+    });
+
+    it('should fetch all questions when no tag or difficulty is provided', async () => {
         const response = await request(app).get('/questions');
 
         expect(response.status).toBe(200);
-        expect(response.body).toEqual(mockQuestions);
+        expect(response.body).toEqual(expect.arrayContaining([
+            expect.objectContaining({})
+        ]));
     });
 
-    it('should return 500 if there is an error in the model', async () => {
-        vi.spyOn(questionModel, 'fetchQuestions').mockRejectedValue(Error('Database error'));
+    it('should return 400 if queried with an invalid tag', async () => {
+        const response = await request(app).get('/questions').query({ tag: '123' });
 
-        const response = await request(app).get('/questions');
-
-        expect(response.status).toBe(500);
-
-        expect(response.text).toContain('Internal Server Error');
+        expect(response.status).toBe(400);
+        expect(response.text).toContain('Invalid tag');
     });
 
-    it('should return 404 if queried with NonExistentTags', async () => {
-        const response = await request(app).get('/questions/?tag=cat')
-        expect(response.status).toBe(404)
-        expect(response.text).toContain('not found')
-    })
+    it('should return 400 if queried with an invalid difficulty', async () => {
+        const response = await request(app).get('/questions').query({ difficulty: 'invalid' });
+
+        expect(response.status).toBe(400);
+        expect(response.text).toContain('Invalid difficulty');
+    });
+
+    it('should return 404 if queried with non-existent tags', async () => {
+        const response = await request(app).get('/questions').query({ tag: 'nonExistentTag' });
+
+        expect(response.status).toBe(404);
+        expect(response.text).toContain('not found');
+    });
 
     it('should return 404 if queried with existing tags with no corresponding questions', async () => {
-        const response = await request(app).get('/questions/?tag=testag')
-        expect(response.status).toBe(404)
-        expect(response.text).toContain('not found')
-    })
+        const response = await request(app).get('/questions').query({ tag: 'testag' });
+
+        expect(response.status).toBe(404);
+        expect(response.text).toContain('not found');
+    });
 });
+

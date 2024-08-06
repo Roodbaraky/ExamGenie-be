@@ -32,6 +32,7 @@ export const tags: Tag[] = [
     { id: 4, tag: 'Area of a Circle' },
     { id: 5, tag: 'Quadratic Equations' },
     { id: 6, tag: 'Trigonometry' },
+    { id: 7, tag: 'testag' }
 ];
 
 
