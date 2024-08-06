@@ -4,10 +4,8 @@ import { supabase } from "../database/supabaseClient"
 export const fetchQuestions = async (tag: string | null | undefined) => {
     if (tag&&typeof tag!=='string') {
         throw new Error('Invalid tag')
-        return Promise.reject('Invalid tag')
     }
     if (tag) {
-
         const { data: tagData, error: tagError } = await supabase
             .from('tags')
             .select('id')
