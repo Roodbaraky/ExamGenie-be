@@ -10,8 +10,6 @@ app.get('/questions', getQuestions);
 
 
 describe('GET /questions', () => {
-
-
     it('should fetch questions by tag', async () => {
         const response = await request(app).get('/questions').query({ tag: 'Pythagoras' });
 
@@ -41,7 +39,6 @@ describe('GET /questions', () => {
 
     it('should fetch questions by tag and difficulty', async () => {
         const response = await request(app).get('/questions').query({ tag: 'Pythagoras', difficulty: 'foundation' });
-
         expect(response.status).toBe(200);
         expect(response.status).toBe(200);
         response.body.forEach(question =>
@@ -56,10 +53,13 @@ describe('GET /questions', () => {
 
     it('should fetch all questions when no tag or difficulty is provided', async () => {
         const response = await request(app).get('/questions');
-
         expect(response.status).toBe(200);
         expect(response.body).toEqual(expect.arrayContaining([
-            expect.objectContaining({})
+            expect.objectContaining({
+                id: expect.any(Number),
+                difficulty: expect.any(String),
+                tags: expect.arrayContaining([expect.objectContaining({ tag: expect.any(String) })])
+            })
         ]));
     });
 
