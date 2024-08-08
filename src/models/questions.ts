@@ -1,46 +1,88 @@
 
-import { ParsedQs } from "qs";
 import { supabase } from "../database/supabaseClient";
 
-export const isDifficultyValid = (difficulty: string | string[]) => {
-    if (Array.isArray(difficulty)) {
-        for (const diff of difficulty) {
-            const isValid = isDifficultyValid(diff);
-            if (!isValid) return false;
+export type Difficulties = {
+    foundation?: boolean;
+    crossover?: boolean;
+    higher?: boolean;
+    extended?: boolean;
+};
+
+export type TagObject = {
+    tag: string;
+};
+export interface FetchQuestionsProps {
+    tags?: TagObject[],
+    difficulties?: Difficulties
+}
+export const areTagsValid = (tags: TagObject[]) => {
+    if (!Array.isArray(tags)) return false;
+    for (const tagObj of tags) {
+        if (typeof tagObj !== 'object' || typeof tagObj.tag !== 'string' || !isNaN(+tagObj.tag)) {
+            return false;
         }
     }
-    else {
-        if (difficulty && typeof difficulty !== 'string') return false;
-        const validDifficulties = ['foundation', 'crossover', 'higher', 'extended', 'other']
-        if (difficulty && !validDifficulties.includes(difficulty)) return false;
+    return true;
+};
+
+export const areDifficultiesValid = (difficulties: Difficulties) => {
+    const validDifficulties = ['foundation', 'crossover', 'higher', 'extended'];
+
+    if (typeof difficulties !== 'object') return false;
+
+    for (const key of Object.keys(difficulties)) {
+        if (!validDifficulties.includes(key) || typeof difficulties[key as keyof Difficulties] !== 'boolean') {
+            return false;
+        }
     }
-    return true
+    return true;
+};
+
+
+const defaultDifficulties = {
+    foundation: true,
+    crossover: true,
+    higher: true,
+    extended: true
 }
+export const fetchQuestions = async ({ tags = [], difficulties = defaultDifficulties }: FetchQuestionsProps = {}) => {
+    console.log(tags, difficulties)
 
-export const fetchQuestions = async (query?: ParsedQs) => {
-    const tag = query?.hasOwnProperty('tag') ? query.tag : null;
-    const difficulty = query?.hasOwnProperty('difficulty') ? query.difficulty : null;
-    if (tag && !isNaN(+tag)) {
-        return Promise.reject(new Error('Invalid tag'));
+    if (tags.length && !areTagsValid(tags)) {
+        console.log(tags, '<---')
+        return Promise.reject(new Error('Invalid tags'));
     }
 
-    const isValidDifficulty = isDifficultyValid(difficulty as string | string[]);
-    if (difficulty && !isValidDifficulty) {
-        return Promise.reject(new Error('Invalid difficulty'));
+    if (Object.keys(difficulties).length && !areDifficultiesValid(difficulties)) {
+        return Promise.reject(new Error('Invalid difficulties'));
     }
 
     try {
-        if (tag) {
+        let query = supabase
+            .from('questions')
+            .select(`
+                id,
+                difficulty,
+                tags (tag)
+            `);
+
+        if (tags.length) {
+            console.log(tags.length, 'tag length')
+            const tagNames = tags.map((tagObj: TagObject) => tagObj.tag.toLowerCase());
+
+            const orConditions = tagNames.map(tagName => `tag.ilike.%${tagName}%`).join(',');
+
             const { data: tagData, error: tagError } = await supabase
                 .from('tags')
                 .select('id')
-                .ilike('tag', `%${tag}%`);
+                .or(orConditions);
 
             if (tagError) {
                 throw tagError;
             }
 
             const tagIds = tagData?.map((x) => x.id);
+
             const { data: questionIdData, error: questionError } = await supabase
                 .from('question_tags')
                 .select('question_id')
@@ -50,51 +92,26 @@ export const fetchQuestions = async (query?: ParsedQs) => {
                 throw questionError;
             }
 
-            let query = supabase
-                .from('questions')
-                .select(`
-                    id,
-                    difficulty,
-                    tags (tag)
-                    `)
-                .in('id', questionIdData.map((x) => x.question_id));
-
-            if (difficulty) {
-                query = query.eq('difficulty', difficulty);
-            }
-
-            const { data: questionsData, error: questionsError } = await query;
-
-
-            if (questionsError) {
-                throw questionsError;
-            }
-
-            return questionsData;
-        } else {
-            let query = supabase
-                .from('questions')
-                .select(`
-                    id,
-                    difficulty,
-                    tags (tag)
-                    `)
-
-            if (difficulty) {
-                query = query.eq('difficulty', difficulty);
-            }
-
-            const { data: questionsData, error: questionsError } = await query;
-
-
-            if (questionsError) {
-                throw questionsError;
-            }
-
-            return questionsData;
+            query = query.in('id', questionIdData.map((x) => x.question_id));
         }
+
+        const activeDifficulties = Object.keys(difficulties).filter(
+            (key) => difficulties[key as keyof Difficulties]
+        );
+
+        if (activeDifficulties.length) {
+            query = query.in('difficulty', activeDifficulties);
+        }
+
+        const { data: questionsData, error: questionsError } = await query;
+
+        if (questionsError) {
+            throw questionsError;
+        }
+        console.log(questionsData)
+        return questionsData;
     } catch (error) {
-        console.error('-->', error)
+        console.error('-->', error);
         return Promise.reject(error);
     }
 };
