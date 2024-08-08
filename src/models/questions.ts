@@ -8,17 +8,15 @@ export type Difficulties = {
     extended?: boolean;
 };
 
-export type TagObject = {
-    tag: string;
-};
+
 export interface FetchQuestionsProps {
-    tags?: TagObject[],
+    tags?: string[],
     difficulties?: Difficulties
 }
-export const areTagsValid = (tags: TagObject[]) => {
+export const areTagsValid = (tags: string[]) => {
     if (!Array.isArray(tags)) return false;
-    for (const tagObj of tags) {
-        if (typeof tagObj !== 'object' || typeof tagObj.tag !== 'string' || !isNaN(+tagObj.tag)) {
+    for (const tag of tags) {
+        if (typeof tag !== 'string'  || !isNaN(+tag)) {
             return false;
         }
     }
@@ -65,7 +63,7 @@ export const fetchQuestions = async ({ tags = [], difficulties = defaultDifficul
             `);
 
         if (tags.length) {
-            const tagNames = tags.map((tagObj: TagObject) => tagObj.tag.toLowerCase());
+            const tagNames = tags.map((tag:string) => tag.toLowerCase());
 
             const orConditions = tagNames.map(tagName => `tag.ilike.%${tagName}%`).join(',');
 
@@ -78,7 +76,7 @@ export const fetchQuestions = async ({ tags = [], difficulties = defaultDifficul
                 throw tagError;
             }
 
-            const tagIds = tagData?.map((x) => x.id);
+            const tagIds = tagData?.map((tagEntry) => tagEntry.id);
 
             const { data: questionIdData, error: questionError } = await supabase
                 .from('question_tags')

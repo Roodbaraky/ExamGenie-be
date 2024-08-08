@@ -4,9 +4,9 @@ import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions, TagOb
 
 describe('areTagsValid', () => {
     it('should return true for valid tags array', () => {
-        const validTags: TagObject[] = [
-            { tag: 'Geometry' },
-            { tag: 'Area of a Circle' },
+        const validTags: string[] = [
+            'Geometry',
+           'Area of a Circle' ,
         ];
         expect(areTagsValid(validTags)).toBe(true);
     });
@@ -16,28 +16,19 @@ describe('areTagsValid', () => {
         expect(areTagsValid(invalidTags)).toBe(false);
     });
 
-    it('should return false if tag is not an object', () => {
-        const invalidTags: any = ['Geometry', 'Area of a Circle'];
-        expect(areTagsValid(invalidTags)).toBe(false);
-    });
-
-    it('should return false if tag property is missing', () => {
-        const invalidTags: any = [{}];
-        expect(areTagsValid(invalidTags)).toBe(false);
-    });
-
+ 
     it('should return false if tag property is not a string', () => {
-        const invalidTags: any = [{ tag: 123 }];
+        const invalidTags: any = [123];
         expect(areTagsValid(invalidTags)).toBe(false);
     });
 
     it('should return false if tag property is a numeric string', () => {
-        const invalidTags: TagObject[] = [{ tag: '123' }];
+        const invalidTags: string[] = ['123'];
         expect(areTagsValid(invalidTags)).toBe(false);
     });
 
     it('should return true for an empty tags array', () => {
-        const validTags: TagObject[] = [];
+        const validTags: string[] = [];
         expect(areTagsValid(validTags)).toBe(true);
     });
 });
@@ -84,8 +75,8 @@ describe('areDifficultiesValid', () => {
 
 describe('fetchQuestions', () => {
     it('should fetch questions by tag', async () => {
-        const questions = await fetchQuestions({ tags: [{ tag: 'Pythagoras' }] });
-        const questions2 = await fetchQuestions({ tags: [{ tag: 'Trigonometry' }] });
+        const questions = await fetchQuestions({ tags: ['Pythagoras' ] });
+        const questions2 = await fetchQuestions({ tags: ['Trigonometry'] });
 
         questions.forEach(question => {
             expect(question).toMatchObject({
@@ -109,7 +100,7 @@ describe('fetchQuestions', () => {
     });
 
     it('should fetch questions when a partial tag match is found', async () => {
-        const questions = await fetchQuestions({ tags: [{ tag: 'pyth' }] });
+        const questions = await fetchQuestions({ tags: [ 'pyth' ] });
         questions.forEach(question => {
             expect(question).toMatchObject({
                 id: expect.any(Number),
@@ -136,7 +127,7 @@ describe('fetchQuestions', () => {
     it('should error if queried with invalid tags', async () => {
         try {
             const tag = 9;
-            const questions = await fetchQuestions({ tags: [{ tag: tag }] as any });
+            const questions = await fetchQuestions({ tags: [ tag ] as any });
             expect(questions).toBeUndefined();
         } catch (error) {
 

@@ -32,7 +32,7 @@ describe('POST /questions', () => {
     it('should fetch questions by tag', async () => {
         const response = await request(app)
             .post('/questions')
-            .send({ tags: [{ tag: 'Pythagoras' }] });
+            .send({ tags: ['Pythagoras' ] });
 
         expect(response.status).toBe(200);
         response.body.forEach(question =>
@@ -60,7 +60,7 @@ describe('POST /questions', () => {
     it('should fetch questions by tag and difficulty', async () => {
         const response = await request(app)
             .post('/questions')
-            .send({ tags: [{ tag: 'Pythagoras' }], difficulties: { foundation: true } });
+            .send({ tags: [ 'Pythagoras' ], difficulties: { foundation: true } });
 
         expect(response.status).toBe(200);
         response.body.forEach(question =>
@@ -82,7 +82,7 @@ describe('POST /questions', () => {
     it('should return 400 if queried with an invalid tag', async () => {
         const response = await request(app)
             .post('/questions')
-            .send({ tags: [{ tag: '123' }] });
+            .send({ tags: ['123'] });
 
         expect(response.status).toBe(400);
         expect(response.text).toContain('Invalid tags');
@@ -100,7 +100,7 @@ describe('POST /questions', () => {
     it('should return 404 if queried with non-existent tags', async () => {
         const response = await request(app)
             .post('/questions')
-            .send({ tags: [{ tag: 'nonExistentTag' }] });
+            .send({ tags: ['nonExistentTag'] });
 
         expect(response.status).toBe(404);
         expect(response.text).toContain('not found');
@@ -109,7 +109,7 @@ describe('POST /questions', () => {
     it('should return 404 if queried with existing tags with no corresponding questions', async () => {
         const response = await request(app)
             .post('/questions')
-            .send({ tags: [{ tag: 'testag' }] });
+            .send({ tags: ['testag'] });
 
         expect(response.status).toBe(404);
         expect(response.text).toContain('not found');
