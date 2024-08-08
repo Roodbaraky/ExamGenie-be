@@ -46,10 +46,8 @@ const defaultDifficulties = {
     extended: true
 }
 export const fetchQuestions = async ({ tags = [], difficulties = defaultDifficulties }: FetchQuestionsProps = {}) => {
-    console.log(tags, difficulties)
 
     if (tags.length && !areTagsValid(tags)) {
-        console.log(tags, '<---')
         return Promise.reject(new Error('Invalid tags'));
     }
 
@@ -67,7 +65,6 @@ export const fetchQuestions = async ({ tags = [], difficulties = defaultDifficul
             `);
 
         if (tags.length) {
-            console.log(tags.length, 'tag length')
             const tagNames = tags.map((tagObj: TagObject) => tagObj.tag.toLowerCase());
 
             const orConditions = tagNames.map(tagName => `tag.ilike.%${tagName}%`).join(',');
@@ -108,7 +105,7 @@ export const fetchQuestions = async ({ tags = [], difficulties = defaultDifficul
         if (questionsError) {
             throw questionsError;
         }
-        console.log(questionsData)
+      
         return questionsData;
     } catch (error) {
         console.error('-->', error);
