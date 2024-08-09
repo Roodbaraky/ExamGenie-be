@@ -1,5 +1,5 @@
 
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, should } from 'vitest';
 import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions } from '../src/models/questions';
 import { Question } from '../src/types/Question';
 
@@ -130,7 +130,33 @@ describe('fetchQuestions', () => {
         }
     });
 
-    it('should return the number of questions specified by the limit passed', async()=>{
-        const questions = await fetchQuestions()
+    it('should return the number of questions specified by the limit passed', async () => {
+        const questions = await fetchQuestions(undefined, undefined, 3)
+        expect(questions.length).toBe(3)
+    })
+
+    it('should error if limit is not a number', async () => {
+        try {
+            const questions = await fetchQuestions(undefined, undefined, 'NaN' as any)
+            expect(questions).toBeUndefined()
+        } catch (error) {
+            console.log(error)
+            expect((error as Error).message).toBe('Invalid limit')
+        }
+    })
+
+    it('should error if limit is negative', async ()=>{
+        try {
+            const questions = await fetchQuestions(undefined, undefined, -1 as any)
+            expect(questions).toBeUndefined()
+        } catch (error) {
+            console.log(error)
+            expect((error as Error).message).toBe('Invalid limit')
+        }
+    })
+
+    it('should return all questions if limit > no. questions', async ()=>{
+        const questions = await fetchQuestions(undefined, undefined, 7)
+        expect(questions.length).toBe(5)
     })
 });

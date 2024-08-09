@@ -56,6 +56,10 @@ export const fetchQuestions = async (tags: string[] = [], difficulties: Difficul
         return Promise.reject(new Error('Invalid difficulties'));
     }
 
+    if (isNaN(limit) || limit < 0) {
+        return Promise.reject(new Error('Invalid limit'))
+    }
+
     try {
         let query = supabase
             .from('questions')
@@ -99,6 +103,9 @@ export const fetchQuestions = async (tags: string[] = [], difficulties: Difficul
 
         if (activeDifficulties.length) {
             query = query.in('difficulty', activeDifficulties);
+        }
+        if (limit) {
+            query.range(0, limit - 1)
         }
 
         const { data: questionsData, error: questionsError } = await query;
