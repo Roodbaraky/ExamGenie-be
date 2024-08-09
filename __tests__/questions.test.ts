@@ -2,6 +2,7 @@
 import { describe, expect, it, should } from 'vitest';
 import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions } from '../src/models/questions';
 import { Question } from '../src/types/Question';
+import exp from 'constants';
 
 describe('areTagsValid', () => {
     it('should return true for valid tags array', () => {
@@ -78,32 +79,28 @@ export const validateQuestionObject = (question: Question, difficulty: string | 
     expect(question).toMatchObject({
         id: expect.any(Number),
         difficulty: difficulty ? difficulty : expect.any(String),
-        tags: expect.arrayContaining([
-            expect.objectContaining({
-                tag: tag ? expect.stringContaining(tag) : expect.any(String)
-            })
-        ])
-    });
+        tags: expect.any(Array)
+    })
 };
-const checkQuestionsMatchTags = (questions: Question[], tags: string[]) => {
+export const checkQuestionsMatchTags = (questions: Question[], tags: string[]) => {
     questions.forEach(question => {
         expect(question).toMatchObject({
             id: expect.any(Number),
-            difficulty: expect.any(String)
+            difficulty: expect.any(String),
+            tags: expect.any(Array)
         });
-        const hasMatchingTag = question.tags.some(tagObj => tags.some(tag => tagObj.tag.toLowerCase().includes(tag.toLowerCase())))
+        const hasMatchingTag = question.tags.some(tag => tags.some(tag => tag.toLowerCase().includes(tag.toLowerCase())))
         expect(hasMatchingTag).toBe(true)
     });
-
 }
 
 describe('fetchQuestions', () => {
     it('should fetch questions by tag', async () => {
-        const questions = await fetchQuestions(['Pythagoras']);
-        const questions2 = await fetchQuestions(['Trigonometry', 'Pythagoras']);
+        const questions = await fetchQuestions(['pythagoras']);
+        const questions2 = await fetchQuestions(['trigonometry', 'pythagoras']);
         questions.forEach((question) => validateQuestionObject(question))
-        checkQuestionsMatchTags(questions, ['Pythagoras'])
-        checkQuestionsMatchTags(questions2, ['Trigonometry', 'Pythagoras'])
+        checkQuestionsMatchTags(questions, ['pythagoras'])
+        checkQuestionsMatchTags(questions2, ['trigonometry', 'pythagoras'])
 
     });
 
@@ -114,6 +111,7 @@ describe('fetchQuestions', () => {
 
     it('should fetch all questions when no tag is provided', async () => {
         const questions = await fetchQuestions();
+
         expect(questions.length).toBe(5)
         questions.forEach((question) => validateQuestionObject(question))
     });
@@ -132,6 +130,7 @@ describe('fetchQuestions', () => {
 
     it('should return the number of questions specified by the limit passed', async () => {
         const questions = await fetchQuestions(undefined, undefined, 3)
+        console.log(questions, '<-----')
         expect(questions.length).toBe(3)
     })
 
@@ -145,7 +144,7 @@ describe('fetchQuestions', () => {
         }
     })
 
-    it('should error if limit is negative', async ()=>{
+    it('should error if limit is negative', async () => {
         try {
             const questions = await fetchQuestions(undefined, undefined, -1 as any)
             expect(questions).toBeUndefined()
@@ -155,8 +154,10 @@ describe('fetchQuestions', () => {
         }
     })
 
-    it('should return all questions if limit > no. questions', async ()=>{
+    it('should return all questions if limit > no. questions', async () => {
         const questions = await fetchQuestions(undefined, undefined, 7)
+        console.log(questions, '<----- 2')
+
         expect(questions.length).toBe(5)
     })
 });

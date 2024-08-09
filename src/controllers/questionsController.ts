@@ -8,7 +8,7 @@ export const getQuestions = async (req: Request, res: Response) => {
         const { tags, difficulties } = req.body
         const { limit } = req.query
         const questions = await fetchQuestions(tags, difficulties, limit ? +limit as number : undefined)
-        if (questions && !questions.length) {
+        if (!questions || questions.length===0) {
             res
                 .status(404)
                 .send('Questions corresponding to filters not found')

@@ -61,60 +61,22 @@ export const fetchQuestions = async (tags: string[] = [], difficulties: Difficul
     }
 
     try {
-        let query = supabase
-            .from('questions')
-            .select(`
-                id,
-                difficulty,
-                tags (tag)
-            `);
-
-        if (tags.length) {
-            const tagNames = tags.map((tag: string) => tag.toLowerCase());
-
-            const orConditions = tagNames.map(tagName => `tag.ilike.%${tagName}%`).join(',');
-
-            const { data: tagData, error: tagError } = await supabase
-                .from('tags')
-                .select('id')
-                .or(orConditions);
-
-            if (tagError) {
-                throw tagError;
-            }
-
-            const tagIds = tagData?.map((tagEntry) => tagEntry.id);
-
-            const { data: questionIdData, error: questionError } = await supabase
-                .from('question_tags')
-                .select('question_id')
-                .in('tag_id', tagIds);
-
-            if (questionError) {
-                throw questionError;
-            }
-
-            query = query.in('id', questionIdData.map((x) => x.question_id));
-        }
-
         const activeDifficulties = Object.keys(difficulties).filter(
-            (key) => difficulties[key as keyof Difficulties]
+            (key) => difficulties[key]
         );
 
-        if (activeDifficulties.length) {
-            query = query.in('difficulty', activeDifficulties);
-        }
-        if (limit) {
-            query.range(0, limit - 1)
-        }
+        const { data, error } = await supabase
+            .rpc('fetch_questions', {
+                input_tags: tags.length ? tags : null,
+                difficulties: activeDifficulties.length ? activeDifficulties : null,
+                limit_value: limit
+            });
 
-        const { data: questionsData, error: questionsError } = await query;
-
-        if (questionsError) {
-            throw questionsError;
+        if (error) {
+            throw error;
         }
-
-        return questionsData;
+        
+         return data;
     } catch (error) {
         console.error('-->', error);
         return Promise.reject(error);
