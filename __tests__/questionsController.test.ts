@@ -3,7 +3,6 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { app } from '../src';
 import { getQuestions } from '../src/controllers/questionsController';
-import { Question } from '../src/types/Question';
 import { validateQuestionObject } from './questions.test';
 
 app.use(express.json());

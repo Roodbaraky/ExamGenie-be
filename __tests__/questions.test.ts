@@ -99,8 +99,8 @@ const checkQuestionsMatchTags = (questions: Question[], tags: string[]) => {
 
 describe('fetchQuestions', () => {
     it('should fetch questions by tag', async () => {
-        const questions = await fetchQuestions({ tags: ['Pythagoras'] });
-        const questions2 = await fetchQuestions({ tags: ['Trigonometry', 'Pythagoras'] });
+        const questions = await fetchQuestions(['Pythagoras']);
+        const questions2 = await fetchQuestions(['Trigonometry', 'Pythagoras']);
         questions.forEach((question) => validateQuestionObject(question))
         checkQuestionsMatchTags(questions, ['Pythagoras'])
         checkQuestionsMatchTags(questions2, ['Trigonometry', 'Pythagoras'])
@@ -108,7 +108,7 @@ describe('fetchQuestions', () => {
     });
 
     it('should fetch questions when a partial tag match is found', async () => {
-        const questions = await fetchQuestions({ tags: ['pyth'] });
+        const questions = await fetchQuestions(['pyth']);
         checkQuestionsMatchTags(questions, ['pyth'])
     })
 
@@ -121,13 +121,16 @@ describe('fetchQuestions', () => {
     it('should error if queried with invalid tags', async () => {
         try {
             const tag = 9;
-            const questions = await fetchQuestions({ tags: [tag] as any });
+            const questions = await fetchQuestions([tag] as any);
             expect(questions).toBeUndefined();
         } catch (error) {
 
             console.log(error)
             expect((error as Error).message).toBe('Invalid tags')
         }
-
     });
+
+    it('should return the number of questions specified by the limit passed', async()=>{
+        const questions = await fetchQuestions()
+    })
 });

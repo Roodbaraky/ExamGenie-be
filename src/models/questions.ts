@@ -1,5 +1,6 @@
 
 import { supabase } from "../database/supabaseClient";
+import { Question } from "../types/Question";
 
 export type Difficulties = {
     foundation?: boolean;
@@ -12,11 +13,12 @@ export type Difficulties = {
 export interface FetchQuestionsProps {
     tags?: string[],
     difficulties?: Difficulties
+    limit?: number
 }
 export const areTagsValid = (tags: string[]) => {
     if (!Array.isArray(tags)) return false;
     for (const tag of tags) {
-        if (typeof tag !== 'string'  || !isNaN(+tag)) {
+        if (typeof tag !== 'string' || !isNaN(+tag)) {
             return false;
         }
     }
@@ -43,7 +45,8 @@ const defaultDifficulties = {
     higher: true,
     extended: true
 }
-export const fetchQuestions = async ({ tags = [], difficulties = defaultDifficulties }: FetchQuestionsProps = {}) => {
+export const fetchQuestions = async (tags: string[] = [], difficulties: Difficulties = defaultDifficulties, limit: number = 20): Promise<
+    Question[]> => {
 
     if (tags.length && !areTagsValid(tags)) {
         return Promise.reject(new Error('Invalid tags'));
@@ -63,7 +66,7 @@ export const fetchQuestions = async ({ tags = [], difficulties = defaultDifficul
             `);
 
         if (tags.length) {
-            const tagNames = tags.map((tag:string) => tag.toLowerCase());
+            const tagNames = tags.map((tag: string) => tag.toLowerCase());
 
             const orConditions = tagNames.map(tagName => `tag.ilike.%${tagName}%`).join(',');
 
@@ -103,7 +106,7 @@ export const fetchQuestions = async ({ tags = [], difficulties = defaultDifficul
         if (questionsError) {
             throw questionsError;
         }
-      
+
         return questionsData;
     } catch (error) {
         console.error('-->', error);
