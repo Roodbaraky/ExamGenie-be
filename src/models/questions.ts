@@ -2,11 +2,9 @@
 import { supabase } from "../database/supabaseClient";
 import { Question } from "../types/Question";
 
+export type DifficultyLevel = 'foundation' | 'crossover' | 'higher' | 'extended';
 export type Difficulties = {
-    foundation?: boolean;
-    crossover?: boolean;
-    higher?: boolean;
-    extended?: boolean;
+    [key in DifficultyLevel]?: boolean;
 };
 
 
@@ -15,14 +13,9 @@ export interface FetchQuestionsProps {
     difficulties?: Difficulties
     limit?: number
 }
-export const areTagsValid = (tags: string[]) => {
+export const areTagsValid = (tags: string[]): boolean => {
     if (!Array.isArray(tags)) return false;
-    for (const tag of tags) {
-        if (typeof tag !== 'string' || !isNaN(+tag)) {
-            return false;
-        }
-    }
-    return true;
+    return tags.every(tag => typeof tag === 'string' && isNaN(Number(tag)));
 };
 
 export const areDifficultiesValid = (difficulties: Difficulties) => {
@@ -61,9 +54,9 @@ export const fetchQuestions = async (tags: string[] = [], difficulties: Difficul
     }
 
     try {
-        const activeDifficulties = Object.keys(difficulties).filter(
-            (key) => difficulties[key]
-        );
+        const activeDifficulties: DifficultyLevel[] = Object.keys(difficulties)
+            .filter((key) => difficulties[key as DifficultyLevel])
+            .map((key) => key as DifficultyLevel);
 
         const { data, error } = await supabase
             .rpc('fetch_questions', {
@@ -75,8 +68,8 @@ export const fetchQuestions = async (tags: string[] = [], difficulties: Difficul
         if (error) {
             throw error;
         }
-        
-         return data;
+
+        return data;
     } catch (error) {
         console.error('-->', error);
         return Promise.reject(error);
