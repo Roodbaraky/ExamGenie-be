@@ -3,36 +3,21 @@ import request from 'supertest';
 import { describe, expect, it } from 'vitest';
 import { app } from '../src';
 import { getQuestions } from '../src/controllers/questionsController';
+import { Question } from '../src/types/Question';
+import { validateQuestionObject } from './questions.test';
 
 app.use(express.json());
 app.get('/questions', getQuestions);
-type Tag = {
-    tag: string
-}
 
-interface Question {
-    id: number
-    difficulty: string
-    tags: Tag[]
-}
 
-const validateQuestionObject = (question: Question, difficulty: string | null = null, tag: string | null = null) => {
-    expect(question).toMatchObject({
-        id: expect.any(Number),
-        difficulty: difficulty ? difficulty : expect.any(String),
-        tags: expect.arrayContaining([
-            expect.objectContaining({
-                tag: tag ? expect.stringContaining(tag) : expect.any(String)
-            })
-        ])
-    });
-};
+
+
 
 describe('POST /questions', () => {
     it('should fetch questions by tag', async () => {
         const response = await request(app)
             .post('/questions')
-            .send({ tags: ['Pythagoras' ] });
+            .send({ tags: ['Pythagoras'] });
 
         expect(response.status).toBe(200);
         response.body.forEach(question =>
@@ -60,7 +45,7 @@ describe('POST /questions', () => {
     it('should fetch questions by tag and difficulty', async () => {
         const response = await request(app)
             .post('/questions')
-            .send({ tags: [ 'Pythagoras' ], difficulties: { foundation: true } });
+            .send({ tags: ['Pythagoras'], difficulties: { foundation: true } });
 
         expect(response.status).toBe(200);
         response.body.forEach(question =>

@@ -1,12 +1,13 @@
 
 import { describe, expect, it } from 'vitest';
-import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions, TagObject, } from '../src/models/questions';
+import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions } from '../src/models/questions';
+import { Question } from '../src/types/Question';
 
 describe('areTagsValid', () => {
     it('should return true for valid tags array', () => {
         const validTags: string[] = [
             'Geometry',
-           'Area of a Circle' ,
+            'Area of a Circle',
         ];
         expect(areTagsValid(validTags)).toBe(true);
     });
@@ -16,7 +17,7 @@ describe('areTagsValid', () => {
         expect(areTagsValid(invalidTags)).toBe(false);
     });
 
- 
+
     it('should return false if tag property is not a string', () => {
         const invalidTags: any = [123];
         expect(areTagsValid(invalidTags)).toBe(false);
@@ -73,61 +74,54 @@ describe('areDifficultiesValid', () => {
     });
 });
 
+export const validateQuestionObject = (question: Question, difficulty: string | null = null, tag: string | null = null) => {
+    expect(question).toMatchObject({
+        id: expect.any(Number),
+        difficulty: difficulty ? difficulty : expect.any(String),
+        tags: expect.arrayContaining([
+            expect.objectContaining({
+                tag: tag ? expect.stringContaining(tag) : expect.any(String)
+            })
+        ])
+    });
+};
+const checkQuestionsMatchTags = (questions: Question[], tags: string[]) => {
+    questions.forEach(question => {
+        expect(question).toMatchObject({
+            id: expect.any(Number),
+            difficulty: expect.any(String)
+        });
+        const hasMatchingTag = question.tags.some(tagObj => tags.some(tag => tagObj.tag.toLowerCase().includes(tag.toLowerCase())))
+        expect(hasMatchingTag).toBe(true)
+    });
+
+}
+
 describe('fetchQuestions', () => {
     it('should fetch questions by tag', async () => {
-        const questions = await fetchQuestions({ tags: ['Pythagoras' ] });
-        const questions2 = await fetchQuestions({ tags: ['Trigonometry'] });
-
-        questions.forEach(question => {
-            expect(question).toMatchObject({
-                id: expect.any(Number),
-                difficulty: expect.any(String),
-                tags: expect.arrayContaining([
-                    expect.objectContaining({ tag: expect.stringContaining('Pythagoras') })
-                ])
-            });
-        });
-        questions2.forEach(question => {
-            expect(question).toMatchObject({
-                id: expect.any(Number),
-                difficulty: expect.any(String),
-                tags: expect.arrayContaining([
-                    expect.objectContaining({ tag: expect.stringContaining('Trigonometry') })
-                ])
-            });
-        });
+        const questions = await fetchQuestions({ tags: ['Pythagoras'] });
+        const questions2 = await fetchQuestions({ tags: ['Trigonometry', 'Pythagoras'] });
+        questions.forEach((question) => validateQuestionObject(question))
+        checkQuestionsMatchTags(questions, ['Pythagoras'])
+        checkQuestionsMatchTags(questions2, ['Trigonometry', 'Pythagoras'])
 
     });
 
     it('should fetch questions when a partial tag match is found', async () => {
-        const questions = await fetchQuestions({ tags: [ 'pyth' ] });
-        questions.forEach(question => {
-            expect(question).toMatchObject({
-                id: expect.any(Number),
-                difficulty: expect.any(String),
-                tags: expect.arrayContaining([
-                    expect.objectContaining({ tag: expect.stringContaining('Pyth') })
-                ])
-            });
-        });
+        const questions = await fetchQuestions({ tags: ['pyth'] });
+        checkQuestionsMatchTags(questions, ['pyth'])
     })
 
     it('should fetch all questions when no tag is provided', async () => {
         const questions = await fetchQuestions();
         expect(questions.length).toBe(5)
-        questions.forEach(question => {
-            expect(question).toMatchObject({
-                id: expect.any(Number),
-                difficulty: expect.any(String),
-                tags: expect.any(Array)
-            });
-        });
+        questions.forEach((question) => validateQuestionObject(question))
     });
 
     it('should error if queried with invalid tags', async () => {
         try {
             const tag = 9;
-            const questions = await fetchQuestions({ tags: [ tag ] as any });
+            const questions = await fetchQuestions({ tags: [tag] as any });
             expect(questions).toBeUndefined();
         } catch (error) {
 
