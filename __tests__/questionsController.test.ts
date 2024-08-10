@@ -87,7 +87,6 @@ describe('POST /questions', () => {
         const response = await request(app)
             .post('/questions')
             .send({ tags: ['testag'] });
-console.log(response.body)
         expect(response.status).toBe(404);
         expect(response.text).toContain('not found');
     });

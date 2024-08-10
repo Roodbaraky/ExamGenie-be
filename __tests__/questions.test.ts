@@ -1,8 +1,7 @@
 
-import { describe, expect, it, should } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions } from '../src/models/questions';
 import { Question } from '../src/types/Question';
-import exp from 'constants';
 
 describe('areTagsValid', () => {
     it('should return true for valid tags array', () => {
@@ -82,36 +81,44 @@ export const validateQuestionObject = (question: Question, difficulty: string | 
         tags: expect.any(Array)
     })
 };
-export const checkQuestionsMatchTags = (questions: Question[], tags: string[]) => {
-    questions.forEach(question => {
-        expect(question).toMatchObject({
-            id: expect.any(Number),
-            difficulty: expect.any(String),
-            tags: expect.any(Array)
-        });
-        const hasMatchingTag = question.tags.some(tag => tags.some(tag => tag.toLowerCase().includes(tag.toLowerCase())))
-        expect(hasMatchingTag).toBe(true)
-    });
-}
+export const checkQuestionsMatchTags = (questions: Question[], tags: string[]): boolean => {
+    if (questions.length === 0) {
+        return false
+    }
+    for (const question of questions) {
+        const match = question.tags.filter(qTag => tags.includes(qTag))
+        if (!match) {
+            return false
+        }
+    }
+    return true
+
+};
 
 describe('fetchQuestions', () => {
     it('should fetch questions by tag', async () => {
         const questions = await fetchQuestions(['pythagoras']);
         const questions2 = await fetchQuestions(['trigonometry', 'pythagoras']);
         questions.forEach((question) => validateQuestionObject(question))
-        checkQuestionsMatchTags(questions, ['pythagoras'])
-        checkQuestionsMatchTags(questions2, ['trigonometry', 'pythagoras'])
+        expect(checkQuestionsMatchTags(questions, ['pythagoras'])).toBe(true)
+        expect(checkQuestionsMatchTags(questions2, ['trigonometry', 'pythagoras'])).toBe(true)
 
     });
 
     it('should fetch questions when a partial tag match is found', async () => {
         const questions = await fetchQuestions(['pyth']);
-        checkQuestionsMatchTags(questions, ['pyth'])
+        expect(checkQuestionsMatchTags(questions, ['pythagoras'])).toBe(true)
     })
+
+    it('should fetch questions from partial tags if passed multiple partial tags', async () => {
+        const questions = await fetchQuestions(['pyth', 'calc']);
+        expect(checkQuestionsMatchTags(questions, ['calculus'])).toBe(true)
+        expect(checkQuestionsMatchTags(questions, ['pythagoras'])).toBe(true)
+    })
+
 
     it('should fetch all questions when no tag is provided', async () => {
         const questions = await fetchQuestions();
-
         expect(questions.length).toBe(5)
         questions.forEach((question) => validateQuestionObject(question))
     });
@@ -122,15 +129,12 @@ describe('fetchQuestions', () => {
             const questions = await fetchQuestions([tag] as any);
             expect(questions).toBeUndefined();
         } catch (error) {
-
-            console.log(error)
             expect((error as Error).message).toBe('Invalid tags')
         }
     });
 
     it('should return the number of questions specified by the limit passed', async () => {
         const questions = await fetchQuestions(undefined, undefined, 3)
-        console.log(questions, '<-----')
         expect(questions.length).toBe(3)
     })
 
@@ -139,7 +143,6 @@ describe('fetchQuestions', () => {
             const questions = await fetchQuestions(undefined, undefined, 'NaN' as any)
             expect(questions).toBeUndefined()
         } catch (error) {
-            console.log(error)
             expect((error as Error).message).toBe('Invalid limit')
         }
     })
@@ -149,15 +152,12 @@ describe('fetchQuestions', () => {
             const questions = await fetchQuestions(undefined, undefined, -1 as any)
             expect(questions).toBeUndefined()
         } catch (error) {
-            console.log(error)
             expect((error as Error).message).toBe('Invalid limit')
         }
     })
 
     it('should return all questions if limit > no. questions', async () => {
         const questions = await fetchQuestions(undefined, undefined, 7)
-        console.log(questions, '<----- 2')
-
         expect(questions.length).toBe(5)
     })
 });
