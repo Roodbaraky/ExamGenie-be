@@ -87,7 +87,7 @@ export const checkQuestionsMatchTags = (questions: Question[], tags: string[]): 
     }
     for (const question of questions) {
         const match = question.tags.filter(qTag => tags.includes(qTag))
-        if (!match) {
+        if (match.length == 0) {
             return false
         }
     }
@@ -102,7 +102,6 @@ describe('fetchQuestions', () => {
         questions.forEach((question) => validateQuestionObject(question))
         expect(checkQuestionsMatchTags(questions, ['pythagoras'])).toBe(true)
         expect(checkQuestionsMatchTags(questions2, ['trigonometry', 'pythagoras'])).toBe(true)
-
     });
 
     it('should fetch questions when a partial tag match is found', async () => {
@@ -112,8 +111,7 @@ describe('fetchQuestions', () => {
 
     it('should fetch questions from partial tags if passed multiple partial tags', async () => {
         const questions = await fetchQuestions(['pyth', 'calc']);
-        expect(checkQuestionsMatchTags(questions, ['calculus'])).toBe(true)
-        expect(checkQuestionsMatchTags(questions, ['pythagoras'])).toBe(true)
+        expect(checkQuestionsMatchTags(questions, ['calculus', 'pythagoras'])).toBe(true)
     })
 
 

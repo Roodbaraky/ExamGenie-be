@@ -2,6 +2,7 @@ import express, { Request, Response, NextFunction } from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import { getQuestions } from './controllers/questionsController';
+import { getClasses } from './controllers/classesController';
 
 dotenv.config();
 export const app = express();
@@ -29,6 +30,8 @@ app.route('/questions')
     .get(getQuestions)
     .post(getQuestions)
 
+app.route('/classes')
+    .get(getClasses)
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
