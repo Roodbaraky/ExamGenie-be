@@ -10,8 +10,11 @@ export type Difficulties = {
 
 export interface FetchQuestionsProps {
     tags?: string[],
-    difficulties?: Difficulties
-    limit?: number
+    difficulties?: Difficulties,
+    limit?: string | number,
+    className?: string,
+    contentType?: string,
+    recallPeriod?: string | number
 }
 export const areTagsValid = (tags: string[]): boolean => {
     if (!Array.isArray(tags)) return false;
@@ -38,8 +41,16 @@ const defaultDifficulties = {
     higher: true,
     extended: true
 }
-export const fetchQuestions = async (tags: string[] = [], difficulties: Difficulties = defaultDifficulties, limit: number = 20): Promise<
-    Question[]> => {
+export const fetchQuestions = async ({
+    tags = [],
+    difficulties = defaultDifficulties,
+    limit = 20,
+    className,
+    contentType,
+    recallPeriod,
+}:
+    FetchQuestionsProps
+): Promise<Question[]> => {
 
     if (tags.length && !areTagsValid(tags)) {
         return Promise.reject(new Error('Invalid tags'));
@@ -49,7 +60,7 @@ export const fetchQuestions = async (tags: string[] = [], difficulties: Difficul
         return Promise.reject(new Error('Invalid difficulties'));
     }
 
-    if (isNaN(limit) || limit < 0) {
+    if (isNaN(+limit) || +limit < 0) {
         return Promise.reject(new Error('Invalid limit'))
     }
 

@@ -1,7 +1,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions } from '../src/models/questions';
-import { Question } from '../src/types/Question';
+import { Question, Tags } from '../src/types/Question';
 
 describe('areTagsValid', () => {
     it('should return true for valid tags array', () => {
@@ -97,34 +97,38 @@ export const checkQuestionsMatchTags = (questions: Question[], tags: string[]): 
 
 describe('fetchQuestions', () => {
     it('should fetch questions by tag', async () => {
-        const questions = await fetchQuestions(['pythagoras']);
-        const questions2 = await fetchQuestions(['trigonometry', 'pythagoras']);
+        const tags = ['pythagoras']
+        const questions = await fetchQuestions({ tags });
+        tags.push('pythagoras')
+        const questions2 = await fetchQuestions({ tags });
         questions.forEach((question) => validateQuestionObject(question))
         expect(checkQuestionsMatchTags(questions, ['pythagoras'])).toBe(true)
         expect(checkQuestionsMatchTags(questions2, ['trigonometry', 'pythagoras'])).toBe(true)
     });
 
     it('should fetch questions when a partial tag match is found', async () => {
-        const questions = await fetchQuestions(['pyth']);
+        const tags = ['pyth']
+        const questions = await fetchQuestions({ tags });
         expect(checkQuestionsMatchTags(questions, ['pythagoras'])).toBe(true)
     })
 
     it('should fetch questions from partial tags if passed multiple partial tags', async () => {
-        const questions = await fetchQuestions(['pyth', 'calc']);
+        const tags = ['pyth', 'calc']
+        const questions = await fetchQuestions({ tags });
         expect(checkQuestionsMatchTags(questions, ['calculus', 'pythagoras'])).toBe(true)
     })
 
 
     it('should fetch all questions when no tag is provided', async () => {
-        const questions = await fetchQuestions();
+        const questions = await fetchQuestions({});
         expect(questions.length).toBe(5)
         questions.forEach((question) => validateQuestionObject(question))
     });
 
     it('should error if queried with invalid tags', async () => {
         try {
-            const tag = 9;
-            const questions = await fetchQuestions([tag] as any);
+            const tags = [9];
+            const questions = await fetchQuestions({ tags } as any);
             expect(questions).toBeUndefined();
         } catch (error) {
             expect((error as Error).message).toBe('Invalid tags')
@@ -132,13 +136,15 @@ describe('fetchQuestions', () => {
     });
 
     it('should return the number of questions specified by the limit passed', async () => {
-        const questions = await fetchQuestions(undefined, undefined, 3)
+        const limit = 3
+        const questions = await fetchQuestions({ limit })
         expect(questions.length).toBe(3)
     })
 
     it('should error if limit is not a number', async () => {
         try {
-            const questions = await fetchQuestions(undefined, undefined, 'NaN' as any)
+            const limit = 'NaN'
+            const questions = await fetchQuestions({ limit })
             expect(questions).toBeUndefined()
         } catch (error) {
             expect((error as Error).message).toBe('Invalid limit')
@@ -147,7 +153,8 @@ describe('fetchQuestions', () => {
 
     it('should error if limit is negative', async () => {
         try {
-            const questions = await fetchQuestions(undefined, undefined, -1 as any)
+            const limit = -1
+            const questions = await fetchQuestions({ limit })
             expect(questions).toBeUndefined()
         } catch (error) {
             expect((error as Error).message).toBe('Invalid limit')
@@ -155,7 +162,8 @@ describe('fetchQuestions', () => {
     })
 
     it('should return all questions if limit > no. questions', async () => {
-        const questions = await fetchQuestions(undefined, undefined, 7)
+        const limit = 7
+        const questions = await fetchQuestions({ limit })
         expect(questions.length).toBe(5)
     })
 });

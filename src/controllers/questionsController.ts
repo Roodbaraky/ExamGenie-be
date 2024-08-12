@@ -5,10 +5,10 @@ import { PostgrestError } from "@supabase/supabase-js"
 export const getQuestions = async (req: Request, res: Response) => {
 
     try {
-        const { tags, difficulties } = req.body
+        const { tags, difficulties, className, contentType, recallPeriod } = req.body
         const { limit } = req.query
-        const questions = await fetchQuestions(tags, difficulties, limit ? +limit as number : undefined)
-        if (!questions || questions.length===0) {
+        const questions = await fetchQuestions({ ...req.body, limit })
+        if (!questions || questions.length === 0) {
             res
                 .status(404)
                 .send('Questions corresponding to filters not found')
