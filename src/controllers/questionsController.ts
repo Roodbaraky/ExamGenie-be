@@ -1,13 +1,26 @@
 import { Request, Response } from "express"
-import { fetchQuestions } from "../models/questions"
+import { fetchQuestions, fetchTags } from "../models/questions"
 import { PostgrestError } from "@supabase/supabase-js"
+
 
 export const getQuestions = async (req: Request, res: Response) => {
 
     try {
-        const { tags, difficulties, className, contentType, recallPeriod } = req.body
-        const { limit } = req.query
-        const questions = await fetchQuestions({ ...req.body, limit })
+        console.log(req.body, '<--- body')
+        if (Object.keys(req.body).length === 0) {
+            const questions = await fetchQuestions({})
+            res
+                .status(200)
+                .send(questions)
+            return
+        }
+        const { difficulties, className, contentType, recallPeriod, currentWeek, tags } = req.body
+        const { limit } = req.query as { limit: string }
+        const tagsToUse = tags && (!className && !recallPeriod)
+            ? tags
+            : (await fetchTags({ className, currentWeek, recallPeriod })).map((tagObject: { tag: string }) => tagObject.tag)
+
+        const questions = await fetchQuestions({ tagsToUse, difficulties, limit })
         if (!questions || questions.length === 0) {
             res
                 .status(404)
@@ -19,6 +32,7 @@ export const getQuestions = async (req: Request, res: Response) => {
                 .send(questions)
         }
     } catch (error) {
+        // console.log(error)
         const err = error as Error
         if (err.message === 'Invalid tags' || err.message === 'Invalid difficulties') {
             res.status(400).send(err.message)
@@ -29,6 +43,7 @@ export const getQuestions = async (req: Request, res: Response) => {
                 .send('Results not found')
         }
         else {
+            console.error(err)
             res
                 .status(500)
                 .send('Internal Server Error')

@@ -9,12 +9,18 @@ export type Difficulties = {
 
 
 export interface FetchQuestionsProps {
-    tags?: string[],
+    tagsToUse?: string[],
     difficulties?: Difficulties,
-    limit?: string | number,
+    limit?: number | string,
     className?: string,
     contentType?: string,
     recallPeriod?: string | number
+}
+
+export interface FetchTagsProps {
+    className: string,
+    currentWeek: number,
+    recallPeriod: number
 }
 export const areTagsValid = (tags: string[]): boolean => {
     if (!Array.isArray(tags)) return false;
@@ -41,8 +47,31 @@ const defaultDifficulties = {
     higher: true,
     extended: true
 }
+
+export const fetchTags = async ({
+    className,
+    currentWeek,
+    recallPeriod
+}: FetchTagsProps) => {
+   
+    try {
+        const { data, error } = await supabase
+            .rpc('fetch_filtered_tags', {
+                classname: className,
+                currentweek: +currentWeek,
+                recallperiod: +recallPeriod
+            })
+        
+        return data
+            ? data
+            : Promise.reject(error);
+
+    } catch (error) {
+        return Promise.reject(error);
+    }
+}
 export const fetchQuestions = async ({
-    tags = [],
+    tagsToUse = [],
     difficulties = defaultDifficulties,
     limit = 20,
     className,
@@ -52,7 +81,7 @@ export const fetchQuestions = async ({
     FetchQuestionsProps
 ): Promise<Question[]> => {
 
-    if (tags.length && !areTagsValid(tags)) {
+    if (tagsToUse.length && !areTagsValid(tagsToUse)) {
         return Promise.reject(new Error('Invalid tags'));
     }
 
@@ -71,7 +100,7 @@ export const fetchQuestions = async ({
 
         const { data, error } = await supabase
             .rpc('fetch_questions', {
-                input_tags: tags.length ? tags : null,
+                input_tags: tagsToUse.length ? tagsToUse : null,
                 difficulties: activeDifficulties.length ? activeDifficulties : null,
                 limit_value: limit
             });
@@ -82,7 +111,6 @@ export const fetchQuestions = async ({
 
         return data;
     } catch (error) {
-        console.error('-->', error);
         return Promise.reject(error);
     }
 };

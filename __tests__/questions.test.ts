@@ -1,7 +1,7 @@
 
 import { describe, expect, it } from 'vitest';
 import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions } from '../src/models/questions';
-import { Question, Tags } from '../src/types/Question';
+import { Question } from '../src/types/Question';
 
 describe('areTagsValid', () => {
     it('should return true for valid tags array', () => {
@@ -97,25 +97,25 @@ export const checkQuestionsMatchTags = (questions: Question[], tags: string[]): 
 
 describe('fetchQuestions', () => {
     it('should fetch questions by tag', async () => {
-        const tags = ['pythagoras']
-        const questions = await fetchQuestions({ tags });
-        tags.push('pythagoras')
-        const questions2 = await fetchQuestions({ tags });
+        const tagsToUse = ['basic']
+        const questions = await fetchQuestions({ tagsToUse });
+        tagsToUse.push('with-indices')
+        const questions2 = await fetchQuestions({ tagsToUse });
         questions.forEach((question) => validateQuestionObject(question))
-        expect(checkQuestionsMatchTags(questions, ['pythagoras'])).toBe(true)
-        expect(checkQuestionsMatchTags(questions2, ['trigonometry', 'pythagoras'])).toBe(true)
+        expect(checkQuestionsMatchTags(questions, ['bidmas-basic'])).toBe(true)
+        expect(checkQuestionsMatchTags(questions2, ['bidmas-basic', 'bidmas-with-indices'])).toBe(true)
     });
 
     it('should fetch questions when a partial tag match is found', async () => {
-        const tags = ['pyth']
-        const questions = await fetchQuestions({ tags });
-        expect(checkQuestionsMatchTags(questions, ['pythagoras'])).toBe(true)
+        const tagsToUse = ['bas']
+        const questions = await fetchQuestions({ tagsToUse });
+        expect(checkQuestionsMatchTags(questions, ['bidmas-basic'])).toBe(true)
     })
 
     it('should fetch questions from partial tags if passed multiple partial tags', async () => {
-        const tags = ['pyth', 'calc']
-        const questions = await fetchQuestions({ tags });
-        expect(checkQuestionsMatchTags(questions, ['calculus', 'pythagoras'])).toBe(true)
+        const tagsToUse = ['bas', 'ind']
+        const questions = await fetchQuestions({ tagsToUse });
+        expect(checkQuestionsMatchTags(questions, ['bidmas-basic', 'bidmas-with-indices'])).toBe(true)
     })
 
 
@@ -127,8 +127,8 @@ describe('fetchQuestions', () => {
 
     it('should error if queried with invalid tags', async () => {
         try {
-            const tags = [9];
-            const questions = await fetchQuestions({ tags } as any);
+            const tagsToUse = [9];
+            const questions = await fetchQuestions({ tagsToUse } as any);
             expect(questions).toBeUndefined();
         } catch (error) {
             expect((error as Error).message).toBe('Invalid tags')

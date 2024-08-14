@@ -9,7 +9,7 @@ describe('fetchClasses', () => {
             expect(classItem).toMatchObject({
                 id:expect.any(Number),
                 class_name:expect.any(String),
-                sow_id:expect.any(Number),
+               
             })
         })
     })

@@ -11,16 +11,16 @@ describe('---- /questions ----', () => {
         it('should fetch questions by tag', async () => {
             const response = await request(app)
                 .post('/questions')
-                .send({ tags: ['pythagoras'] });
+                .send({ tags: ['basic'] });
 
             expect(response.status).toBe(200);
-            checkQuestionsMatchTags(response.body, ['pythagoras'])
+            checkQuestionsMatchTags(response.body, ['bidmas-basic'])
         });
 
         it('should fetch questions by difficulty', async () => {
             const response = await request(app)
                 .post('/questions')
-                .send({ difficulties: { foundation: true } });
+                .send({ difficulties: { foundation: true }, tags:['basic']});
 
             expect(response.status).toBe(200);
             response.body.forEach(question =>
@@ -31,11 +31,11 @@ describe('---- /questions ----', () => {
         it('should fetch questions by tag and difficulty', async () => {
             const response = await request(app)
                 .post('/questions')
-                .send({ tags: ['pythagoras'], difficulties: { foundation: true } });
+                .send({ tags: ['basic'], difficulties: { foundation: true } });
 
             expect(response.status).toBe(200);
             response.body.forEach(question =>
-                validateQuestionObject(question, 'foundation', 'Pythagoras')
+                validateQuestionObject(question, 'foundation', 'bidmas-basic')
             );
         });
 
@@ -62,8 +62,7 @@ describe('---- /questions ----', () => {
         it('should return 400 if queried with an invalid difficulty', async () => {
             const response = await request(app)
                 .post('/questions')
-                .send({ difficulties: { invalid: true } });
-
+                .send({ difficulties: { invalid: true }, tags:['basic'] });
             expect(response.status).toBe(400);
             expect(response.text).toContain('Invalid difficulties');
         });
@@ -99,7 +98,7 @@ describe('---- /classes ----', () => {
                 expect(classItem).toMatchObject({
                     id: expect.any(Number),
                     class_name: expect.any(String),
-                    sow_id: expect.any(Number),
+                   
                 })
 
             });

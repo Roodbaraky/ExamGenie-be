@@ -1,3 +1,4 @@
+import { tags as tagData } from "./tags";
 type DifficultyLevel = 'foundation' | 'crossover' | 'higher' | 'extended';
 
 interface Question {
@@ -6,7 +7,7 @@ interface Question {
 }
 
 interface Tag {
-    id: number;
+    id?: number;
     tag: string;
 }
 
@@ -31,19 +32,10 @@ export const questions: Question[] = [
 ];
 
 
-export const tags: Tag[] = [
-    { id: 1, tag: 'Geometry' },
-    { id: 2, tag: 'Pythagoras' },
-    { id: 3, tag: 'Calculus' },
-    { id: 4, tag: 'Area of a Circle' },
-    { id: 5, tag: 'Quadratic Equations' },
-    { id: 6, tag: 'Trigonometry' },
-    { id: 7, tag: 'testag' }
-];
+export const tags: Tag[] = tagData
 
 
 export const questionTags: QuestionTag[] = [
-    { question_id: 1, tag_id: 1 },
     { question_id: 1, tag_id: 4 },
     { question_id: 2, tag_id: 1 },
     { question_id: 2, tag_id: 2 },
