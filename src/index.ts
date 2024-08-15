@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import { getQuestions } from './controllers/questionsController';
 import { getClasses } from './controllers/classesController';
+import { getWeeksFromClassName } from './controllers/weeksController';
 
 dotenv.config();
 export const app = express();
@@ -32,6 +33,9 @@ app.route('/questions')
 
 app.route('/classes')
     .get(getClasses)
+
+app.route('/weeks')
+    .get(getWeeksFromClassName)
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {

@@ -53,8 +53,8 @@ export const areFetchTagsArgsValid = ({
     currentWeek,
     recallPeriod }: FetchTagsProps) => {
     if (typeof className !== 'string') return Promise.reject(new Error('Invalid className'));
-    if (typeof currentWeek !== 'number') return Promise.reject(new Error('Invalid currentWeek'));
-    if (typeof recallPeriod !== 'number') return Promise.reject(new Error('Invalid recallPeriod'));
+    if (isNaN(+currentWeek)) return Promise.reject(new Error('Invalid currentWeek'));
+    if (isNaN(+recallPeriod)) return Promise.reject(new Error('Invalid recallPeriod'));
 }
 
 export const checkIfClassExists = async (className: string) => {
