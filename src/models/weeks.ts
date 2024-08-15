@@ -7,8 +7,6 @@ export const isClassNameValid = (className: unknown) => {
 }
 
 export const fetchWeeks = async (className: string) => {
-
-   
         await isClassNameValid(className)
         await checkIfClassExists(className)
         const { data, error } = await supabase
@@ -17,8 +15,8 @@ export const fetchWeeks = async (className: string) => {
         if (error) {
             return Promise.reject(error)
         }
-
-
         return data
+        ? data
+        : Promise.reject('Weeks data not found')
    
 }

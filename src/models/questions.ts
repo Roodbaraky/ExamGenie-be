@@ -65,7 +65,6 @@ export const checkIfClassExists = async (className: string) => {
             .eq('class_name', className)
 
         if (error) {
-            console.log(error)
             return Promise.reject(error);
         }
         if (data && data.length === 0) {

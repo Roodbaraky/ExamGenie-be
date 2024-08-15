@@ -1,8 +1,8 @@
-import express, { Request, Response, NextFunction } from 'express';
-import dotenv from 'dotenv';
 import cors from 'cors';
-import { getQuestions } from './controllers/questionsController';
+import dotenv from 'dotenv';
+import express, { Request, Response } from 'express';
 import { getClasses } from './controllers/classesController';
+import { getQuestions } from './controllers/questionsController';
 import { getWeeksFromClassName } from './controllers/weeksController';
 
 dotenv.config();
@@ -23,7 +23,7 @@ app.use(express.json());
 
 
 app.route('/')
-    .get((req: Request, res: Response, next: NextFunction) => {
+    .get((req: Request, res: Response) => {
         res.status(200).send('Hi, API is working');
     });
 
@@ -36,6 +36,7 @@ app.route('/classes')
 
 app.route('/weeks')
     .get(getWeeksFromClassName)
+
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {
