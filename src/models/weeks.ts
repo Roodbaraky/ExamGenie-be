@@ -1,13 +1,24 @@
 import { supabase } from "../database/supabaseClient";
-export const fetchWeeks = async (className: string) => {
-    console.log(className)
-    const { data, error } = await supabase
-    .rpc('get_weeks_with_tags', {classname:className})
+import { checkIfClassExists } from "./questions";
 
-    if (error) {
-        console.log(error)
-        throw error
-    }
-    
-    return data
+
+export const isClassNameValid = (className: unknown) => {
+    if (typeof className !== 'string') return Promise.reject('Invalid className')
+}
+
+export const fetchWeeks = async (className: string) => {
+
+   
+        await isClassNameValid(className)
+        await checkIfClassExists(className)
+        const { data, error } = await supabase
+            .rpc('get_weeks_with_tags', { classname: className })
+
+        if (error) {
+            return Promise.reject(error)
+        }
+
+
+        return data
+   
 }
