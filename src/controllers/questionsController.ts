@@ -18,7 +18,7 @@ export const getQuestions = async (req: Request, res: Response) => {
         const { limit } = req.query as { limit: string }
         const tagsToUse = tags && (!className && !recallPeriod)
             ? tags
-            : (await fetchTags({ className, currentWeek, recallPeriod })).map((tagObject: { tag: string }) => tagObject.tag)
+            : (await fetchTags({ className, currentWeek, recallPeriod }))
 
         const questions = await fetchQuestions({ tagsToUse, difficulties, limit })
         if (!questions || questions.length === 0) {
