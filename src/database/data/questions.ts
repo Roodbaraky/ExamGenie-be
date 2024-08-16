@@ -1,0 +1,50 @@
+export type DifficultyLevel = 'foundation' | 'crossover' | 'higher' | 'extended';
+
+export interface Question {
+    id: number;
+    difficulty: DifficultyLevel;
+}
+export const questions: Question[] = [
+    { id: 1, difficulty: 'foundation' },
+    { id: 2, difficulty: 'foundation' },
+    { id: 3, difficulty: 'foundation' },
+    { id: 4, difficulty: 'foundation' },
+    { id: 5, difficulty: 'foundation' },
+    { id: 6, difficulty: 'foundation' },
+    { id: 7, difficulty: 'foundation' },
+    { id: 8, difficulty: 'foundation' },
+    { id: 9, difficulty: 'foundation' },
+    { id: 10, difficulty: 'foundation' },
+    { id: 11, difficulty: 'foundation' },
+    { id: 12, difficulty: 'foundation' },
+    { id: 13, difficulty: 'foundation' },
+    { id: 14, difficulty: 'foundation' },
+    { id: 15, difficulty: 'foundation' },
+    { id: 16, difficulty: 'foundation' },
+    { id: 17, difficulty: 'foundation' },
+    { id: 18, difficulty: 'foundation' },
+    { id: 19, difficulty: 'foundation' },
+    { id: 20, difficulty: 'crossover' },
+    { id: 21, difficulty: 'crossover' },
+    { id: 22, difficulty: 'crossover' },
+    { id: 23, difficulty: 'crossover' },
+    { id: 24, difficulty: 'crossover' },
+    { id: 25, difficulty: 'crossover' },
+    { id: 26, difficulty: 'crossover' },
+    { id: 27, difficulty: 'higher' },
+    { id: 28, difficulty: 'higher' },
+    { id: 29, difficulty: 'higher' },
+    { id: 30, difficulty: 'higher' },
+    { id: 31, difficulty: 'higher' },
+    { id: 32, difficulty: 'higher' },
+    { id: 33, difficulty: 'higher' },
+    { id: 34, difficulty: 'higher' },
+    { id: 35, difficulty: 'higher' },
+    { id: 36, difficulty: 'higher' },
+    { id: 37, difficulty: 'higher' },
+    { id: 38, difficulty: 'higher' },
+    { id: 39, difficulty: 'higher' },
+    { id: 40, difficulty: 'higher' },
+    { id: 41, difficulty: 'higher' },
+
+]

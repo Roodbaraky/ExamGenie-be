@@ -1,59 +1,31 @@
-import { tags as tagData } from "./tags";
-type DifficultyLevel = 'foundation' | 'crossover' | 'higher' | 'extended';
+import { Tag, tags as tagData } from "./data/tags";
+import { Question, questions as questionData } from './data/questions'
+import { QuestionTag, questionTags as questionTagsData } from './data/questionTags'
+import { Class, classes as classData } from './data/classes'
+import { SoW, sows as sowData } from "./data/sows";
+import { Week, weeks as weekData } from "./data/weeks";
+import { WeeksTags, weeksTags as weeksTagsData } from "./data/weeksTags";
+import { SoWWeek, sowsWeeks as sowWeekData } from "./data/sowsWeeks";
+import { ClassSows, classSows as classSowsData } from "./data/classSows";
 
-interface Question {
-    id: number;
-    difficulty: DifficultyLevel;
-}
-
-interface Tag {
-    id?: number;
-    tag: string;
-}
-
-interface QuestionTag {
-    question_id: number;
-    tag_id: number;
-}
-
-interface Class {
-    id?: number
-    class_name: string
-    sow_id?: number
-}
-
-
-export const questions: Question[] = [
-    { id: 1, difficulty: 'crossover' },
-    { id: 2, difficulty: 'foundation' },
-    { id: 3, difficulty: 'higher' },
-    { id: 4, difficulty: 'foundation' },
-    { id: 5, difficulty: 'crossover' },
-];
-
-
+export const questions: Question[] = questionData
 export const tags: Tag[] = tagData
+export const questionTags: QuestionTag[] = questionTagsData
+export const classes: Class[] = classData
+export const sows: SoW[] = sowData
+export const weeks: Week[] = weekData
+export const weeksTags: WeeksTags[] = weeksTagsData
+export const sowWeeks: SoWWeek[] = sowWeekData
+export const classSows: ClassSows[] = classSowsData
 
-
-export const questionTags: QuestionTag[] = [
-    { question_id: 1, tag_id: 4 },
-    { question_id: 2, tag_id: 1 },
-    { question_id: 2, tag_id: 2 },
-    { question_id: 2, tag_id: 6 },
-    { question_id: 3, tag_id: 3 },
-    { question_id: 4, tag_id: 1 },
-    { question_id: 5, tag_id: 1 },
-    { question_id: 5, tag_id: 5 },
-];
-
-export const classes: Class[] = [
-    { class_name: '9xPb' },
-    { class_name: '9ycB' },
-    { class_name: '10xFb' },
-    { class_name: '10yPb' },
-    { class_name: '11xFb' },
-    { class_name: '11xPb' },
-    { class_name: '12M' },
-    { class_name: '13M' },
-
-]
+export const seedData ={
+    questions,
+    tags,
+    questionTags,
+    classes,
+    sows,
+    weeks,
+    weeksTags,
+    sowWeeks,
+    classSows
+}

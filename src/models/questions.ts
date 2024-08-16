@@ -123,11 +123,10 @@ export const fetchQuestions = async ({
 }:
     FetchQuestionsProps
 ): Promise<Question[]> => {
-
     if (tagsToUse.length && !areTagsValid(tagsToUse)) {
         return Promise.reject(new Error('Invalid tags'));
     }
-
+    
     if (Object.keys(difficulties).length && !areDifficultiesValid(difficulties)) {
         return Promise.reject(new Error('Invalid difficulties'));
     }
@@ -140,20 +139,20 @@ export const fetchQuestions = async ({
         const activeDifficulties: DifficultyLevel[] = Object.keys(difficulties)
             .filter((key) => difficulties[key as DifficultyLevel])
             .map((key) => key as DifficultyLevel);
-
+            
+            
+console.log(tagsToUse, '<--- tagsToUse')
         const { data, error } = await supabase
             .rpc('fetch_questions', {
                 input_tags: tagsToUse.length ? tagsToUse : null,
                 difficulties: activeDifficulties.length ? activeDifficulties : null,
                 limit_value: limit
             });
-
+console.log(data,'<-- data')
         if (error) {
             return Promise.reject(error)
         }
         const idsToFetchImagesOf = data.map((questionObject: Question) => questionObject.id)
-        console.log(idsToFetchImagesOf)
-
         const questionImgUrls = await Promise.allSettled(idsToFetchImagesOf.map(async (questionId: number) => {
             const { data, error } = await supabase.storage
                 .from('questions')
