@@ -37,6 +37,8 @@ app.route('/classes')
 app.route('/weeks')
     .get(getWeeksFromClassName)
 
+app.route('sow')
+    
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {

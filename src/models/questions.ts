@@ -1,12 +1,13 @@
 
+import dotenv from "dotenv";
 import { supabase } from "../database/supabaseClient";
 import { Question } from "../types/Question";
+dotenv.config()
 
 export type DifficultyLevel = 'foundation' | 'crossover' | 'higher' | 'extended';
 export type Difficulties = {
     [key in DifficultyLevel]?: boolean;
 };
-
 
 export interface FetchQuestionsProps {
     tagsToUse?: string[],
@@ -148,10 +149,22 @@ export const fetchQuestions = async ({
             });
 
         if (error) {
-            throw error;
+            return Promise.reject(error)
         }
+        const idsToFetchImagesOf = data.map((questionObject: Question) => questionObject.id)
+        console.log(idsToFetchImagesOf)
 
-        return data;
+        const questionImgUrls = await Promise.allSettled(idsToFetchImagesOf.map(async (questionId: number) => {
+            const { data, error } = await supabase.storage
+                .from('questions')
+                .createSignedUrl(`public/${questionId}.png`, 60 * 60);
+
+            if (error) {
+                return Promise.reject(error)
+            }
+            return data.signedUrl
+        }))
+        return [data, questionImgUrls.filter(result => result.status === 'fulfilled')];
     } catch (error) {
         return Promise.reject(error);
     }

@@ -118,6 +118,14 @@ describe('fetchQuestions', () => {
         expect(checkQuestionsMatchTags(questions, ['bidmas-basic', 'bidmas-with-indices'])).toBe(true)
     })
 
+    it('should fetch only questions which are tagged with the specified tags', async()=>{
+        const tagsToUse = ['bidmas']
+        const questions = await fetchQuestions({ tagsToUse });
+        questions.forEach(question=>question.tags.forEach(tag=>expect(tag.includes('bidmas')).toBe(true)))
+        tagsToUse.push('nonExistentTag')
+        const questions2 = await fetchQuestions({ tagsToUse });
+        questions2.forEach(question=>question.tags.forEach(tag=>expect(tag.includes('bidmas')).toBe(true)))
+    })
 
     it('should fetch all questions when no tag is provided', async () => {
         const questions = await fetchQuestions({});

@@ -1,8 +1,8 @@
 import { classes, questions, questionTags, tags } from "./seedData";
-import { supabase } from "./supabaseClient";
+import { supabaseSeedClient } from "./supabaseClient";
 
 async function insertQuestions() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseSeedClient
         .from('questions')
         .insert(questions);
 
@@ -11,7 +11,7 @@ async function insertQuestions() {
 }
 
 async function insertTags() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseSeedClient
         .from('tags')
         .insert(tags);
 
@@ -19,7 +19,7 @@ async function insertTags() {
     else console.log('Tags inserted:', data);
 }
 async function insertQuestionTags() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseSeedClient
         .from('question_tags')
         .insert(questionTags);
 
@@ -28,7 +28,7 @@ async function insertQuestionTags() {
 }
 
 async function insertClasses() {
-    const { data, error } = await supabase
+    const { data, error } = await supabaseSeedClient
         .from('classes')
         .insert(classes)
 

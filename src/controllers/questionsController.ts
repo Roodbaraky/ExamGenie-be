@@ -31,7 +31,7 @@ export const getQuestions = async (req: Request, res: Response) => {
                 .send(questions)
         }
     } catch (error) {
-        // console.log(error)
+        console.log(error)
         const err = error as Error
         if (err.message === 'Invalid tags' || err.message === 'Invalid difficulties') {
             res.status(400).send(err.message)
