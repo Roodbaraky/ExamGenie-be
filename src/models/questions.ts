@@ -141,14 +141,14 @@ export const fetchQuestions = async ({
             .map((key) => key as DifficultyLevel);
             
             
-console.log(tagsToUse, '<--- tagsToUse')
+
         const { data, error } = await supabase
             .rpc('fetch_questions', {
                 input_tags: tagsToUse.length ? tagsToUse : null,
                 difficulties: activeDifficulties.length ? activeDifficulties : null,
                 limit_value: limit
             });
-console.log(data,'<-- data')
+
         if (error) {
             return Promise.reject(error)
         }
