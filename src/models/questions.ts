@@ -2,6 +2,7 @@
 import dotenv from "dotenv";
 import { supabase } from "../database/supabaseClient";
 import { Question } from "../types/Question";
+import { queryObjects } from "v8";
 dotenv.config()
 
 export type DifficultyLevel = 'foundation' | 'crossover' | 'higher' | 'extended';
@@ -126,7 +127,7 @@ export const fetchQuestions = async ({
     if (tagsToUse.length && !areTagsValid(tagsToUse)) {
         return Promise.reject(new Error('Invalid tags'));
     }
-    
+
     if (Object.keys(difficulties).length && !areDifficultiesValid(difficulties)) {
         return Promise.reject(new Error('Invalid difficulties'));
     }
@@ -139,8 +140,8 @@ export const fetchQuestions = async ({
         const activeDifficulties: DifficultyLevel[] = Object.keys(difficulties)
             .filter((key) => difficulties[key as DifficultyLevel])
             .map((key) => key as DifficultyLevel);
-            
-            
+
+
 
         const { data, error } = await supabase
             .rpc('fetch_questions', {
@@ -163,7 +164,15 @@ export const fetchQuestions = async ({
             }
             return data.signedUrl
         }))
-        return [data, questionImgUrls.filter(result => result.status === 'fulfilled')];
+        const combinedQuestionsObjectArr = data.map((questionObject: Question, index: number) => {
+            questionObject.URL = questionImgUrls[index].status === 'fulfilled'
+                ? questionImgUrls[index].value
+                : null
+            return questionObject
+        }
+        )
+        // return questionImgUrls.filter(result => result.status === 'fulfilled').map((resultObject) => resultObject.value)
+        return combinedQuestionsObjectArr
     } catch (error) {
         return Promise.reject(error);
     }

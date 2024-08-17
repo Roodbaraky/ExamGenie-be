@@ -1,8 +1,9 @@
 import express from 'express';
 import request from 'supertest';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, expectTypeOf, it } from 'vitest';
 import { app } from '../src';
 import { checkQuestionsMatchTags, validateQuestionObject } from './questions.test';
+import { Question } from '../src/types/Question';
 
 app.use(express.json());
 
@@ -11,16 +12,16 @@ describe('---- /questions ----', () => {
         it('should fetch questions by tag', async () => {
             const response = await request(app)
                 .post('/questions')
-                .send({ tags: ['basic'] });
+                .send({ tags: ['surds'] });
 
             expect(response.status).toBe(200);
-            checkQuestionsMatchTags(response.body, ['bidmas-basic'])
+            checkQuestionsMatchTags(response.body, ['surds'])
         });
 
         it('should fetch questions by difficulty', async () => {
             const response = await request(app)
                 .post('/questions')
-                .send({ difficulties: { foundation: true }, tags:['basic']});
+                .send({ difficulties: { foundation: true }, tags: ['money'] });
 
             expect(response.status).toBe(200);
             response.body.forEach(question =>
@@ -31,7 +32,7 @@ describe('---- /questions ----', () => {
         it('should fetch questions by tag and difficulty', async () => {
             const response = await request(app)
                 .post('/questions')
-                .send({ tags: ['basic'], difficulties: { foundation: true } });
+                .send({ tags: ['money'], difficulties: { foundation: true } });
 
             expect(response.status).toBe(200);
             response.body.forEach(question =>
@@ -43,18 +44,25 @@ describe('---- /questions ----', () => {
             const response = await request(app)
                 .post('/questions')
                 .send({});
-
             expect(response.status).toBe(200);
-            response.body.forEach(question =>
-                validateQuestionObject(question)
-            );
+            expect(Array.isArray(response.body)).toBe(true)
+            response.body.forEach((arrayItem: Question) => {
+                expect(arrayItem).toMatchObject({
+                    URL: expect.any(String),
+                    id: expect.any(Number),
+                    difficulty: expect.any(String),
+                    tags: expect.arrayContaining([expect.any(String)])
+                });
+            });
+
         });
+
+
 
         it('should return 400 if queried with an invalid tag', async () => {
             const response = await request(app)
                 .post('/questions')
                 .send({ tags: ['123'] });
-
             expect(response.status).toBe(400);
             expect(response.text).toContain('Invalid tags');
         });
@@ -62,7 +70,7 @@ describe('---- /questions ----', () => {
         it('should return 400 if queried with an invalid difficulty', async () => {
             const response = await request(app)
                 .post('/questions')
-                .send({ difficulties: { invalid: true }, tags:['basic'] });
+                .send({ difficulties: { invalid: true }, tags: ['basic'] });
             expect(response.status).toBe(400);
             expect(response.text).toContain('Invalid difficulties');
         });
@@ -98,7 +106,7 @@ describe('---- /classes ----', () => {
                 expect(classItem).toMatchObject({
                     id: expect.any(Number),
                     class_name: expect.any(String),
-                   
+
                 })
 
             });

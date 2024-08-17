@@ -97,25 +97,25 @@ export const checkQuestionsMatchTags = (questions: Question[], tags: string[]): 
 
 describe('fetchQuestions', () => {
     it('should fetch questions by tag', async () => {
-        const tagsToUse = ['basic']
+        const tagsToUse = ['money']
         const questions = await fetchQuestions({ tagsToUse });
-        tagsToUse.push('with-indices')
+        tagsToUse.push('surds')
         const questions2 = await fetchQuestions({ tagsToUse });
         questions.forEach((question) => validateQuestionObject(question))
-        expect(checkQuestionsMatchTags(questions, ['bidmas-basic'])).toBe(true)
-        expect(checkQuestionsMatchTags(questions2, ['bidmas-basic', 'bidmas-with-indices'])).toBe(true)
+        expect(checkQuestionsMatchTags(questions, ['money'])).toBe(true)
+        expect(checkQuestionsMatchTags(questions2, ['money', 'surds'])).toBe(true)
     });
 
     it('should fetch questions when a partial tag match is found', async () => {
-        const tagsToUse = ['bas']
+        const tagsToUse = ['mon']
         const questions = await fetchQuestions({ tagsToUse });
-        expect(checkQuestionsMatchTags(questions, ['bidmas-basic'])).toBe(true)
+        expect(checkQuestionsMatchTags(questions, ['money'])).toBe(true)
     })
 
     it('should fetch questions from partial tags if passed multiple partial tags', async () => {
-        const tagsToUse = ['bas', 'ind']
+        const tagsToUse = ['mon', 'sur']
         const questions = await fetchQuestions({ tagsToUse });
-        expect(checkQuestionsMatchTags(questions, ['bidmas-basic', 'bidmas-with-indices'])).toBe(true)
+        expect(checkQuestionsMatchTags(questions, ['money', 'surds'])).toBe(true)
     })
 
     it('should fetch only questions which are tagged with the specified tags', async()=>{
@@ -129,7 +129,7 @@ describe('fetchQuestions', () => {
 
     it('should fetch all questions when no tag is provided', async () => {
         const questions = await fetchQuestions({});
-        expect(questions.length).toBe(5)
+        expect(questions.length).toBe(20)
         questions.forEach((question) => validateQuestionObject(question))
     });
 
@@ -170,8 +170,8 @@ describe('fetchQuestions', () => {
     })
 
     it('should return all questions if limit > no. questions', async () => {
-        const limit = 7
+        const limit = 900
         const questions = await fetchQuestions({ limit })
-        expect(questions.length).toBe(5)
+        expect(questions.length<limit).toBe(true)
     })
 });

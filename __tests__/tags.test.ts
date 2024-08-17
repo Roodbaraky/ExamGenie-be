@@ -7,7 +7,7 @@ describe('fetchTags', () => {
     it('should fetch an array of tags when passed className, currentWeek, and recallPeriod', async () => {
         const exampleArgs: FetchTagsProps = { className: '9xPb', currentWeek: 2, recallPeriod: 1 }
         const tags = await fetchTags(exampleArgs)
-        expect(tags.length).toBe(5)
+        expect(tags.length).toBe(4)
         expect(Array.isArray(tags)).toBe(true)
         tags.forEach((tag: string) => expect(typeof tag).toBe('string'))
     });
