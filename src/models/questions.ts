@@ -19,7 +19,7 @@ export interface FetchQuestionsProps {
     recallPeriod?: string | number
 }
 
-export interface FetchTagsProps {
+export interface FetchTagsFromSowProps {
     className: string,
     currentWeek: number,
     recallPeriod: number
@@ -53,7 +53,7 @@ const defaultDifficulties = {
 export const areFetchTagsArgsValid = ({
     className,
     currentWeek,
-    recallPeriod }: FetchTagsProps) => {
+    recallPeriod }: FetchTagsFromSowProps) => {
     if (typeof className !== 'string') return Promise.reject(new Error('Invalid className'));
     if (isNaN(+currentWeek)) return Promise.reject(new Error('Invalid currentWeek'));
     if (isNaN(+recallPeriod)) return Promise.reject(new Error('Invalid recallPeriod'));
@@ -78,11 +78,11 @@ export const checkIfClassExists = async (className: string) => {
     }
 }
 
-export const fetchTags = async ({
+export const fetchTagsFromSow = async ({
     className,
     currentWeek,
     recallPeriod
-}: FetchTagsProps) => {
+}: FetchTagsFromSowProps) => {
 
 
 

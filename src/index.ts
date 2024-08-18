@@ -4,6 +4,7 @@ import express, { Request, Response } from 'express';
 import { getClasses } from './controllers/classesController';
 import { getQuestions, addQuestions } from './controllers/questionsController';
 import { getWeeksFromClassName } from './controllers/weeksController';
+import { getTags } from './controllers/tagsController';
 
 dotenv.config();
 export const app = express();
@@ -40,6 +41,8 @@ app.route('/classes')
 app.route('/weeks')
     .get(getWeeksFromClassName)
 
+app.route('/tags')
+    .get(getTags)
 app.route('sow')
 
 const port = process.env.PORT || 3000;

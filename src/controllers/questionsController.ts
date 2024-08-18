@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { fetchQuestions, fetchTags, postQuestions } from "../models/questions"
+import { fetchQuestions, fetchTagsFromSow, postQuestions } from "../models/questions"
 import { PostgrestError } from "@supabase/supabase-js"
 
 
@@ -17,7 +17,7 @@ export const getQuestions = async (req: Request, res: Response) => {
         const { limit } = req.query as { limit: string }
         const tagsToUse = tags && (!className && !recallPeriod)
             ? tags
-            : (await fetchTags({ className, currentWeek, recallPeriod }))
+            : (await fetchTagsFromSow({ className, currentWeek, recallPeriod }))
 
         const questions = await fetchQuestions({ tagsToUse, difficulties, limit })
         if (!questions || questions.length === 0) {
@@ -54,8 +54,9 @@ export const getQuestions = async (req: Request, res: Response) => {
 export const addQuestions = async (req: Request, res: Response) => {
     try {
 
-        const { questions } = req.body
+        const  questions  = req.body
         //check shape of data
+        console.log(questions)
 
         //should return array of questionIds? which become corresponding images?
         //this probably has an issue of questions being inserted in order?
