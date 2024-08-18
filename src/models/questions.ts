@@ -1,6 +1,6 @@
 
 import dotenv from "dotenv";
-import { supabase } from "../database/supabaseClient";
+import { supabase, supabaseSeedClient } from "../database/supabaseClient";
 import { Question } from "../types/Question";
 import { queryObjects } from "v8";
 dotenv.config()
@@ -176,9 +176,61 @@ export const fetchQuestions = async ({
 };
 export const postQuestions = async (questions: Question[]) => {
     //iterate through questions
-    //insert all questions into questions (, difficulty)
-    //insert all question tags into question_tags:
-    // //for all tags on question, retrieve tag_ids
-    // //insert entries into question_tags (question_id, tag_id)
-    //On success, return array of question_ids (in order) to fe to properly upload images
+    try {
+        const questionIds: number[] = []
+        const tagIdsArr: number[][] = []
+        for (const question of questions) {
+            //insert all questions into questions (, difficulty)
+            const { data: questionsData, error } = await supabase
+                .from('questions')
+                .insert({ id: Math.ceil(Date.now() + Math.random()), difficulty: question.difficulty })
+                .select('id')
+            //do better RNG          ^^
+            if (error) throw error
+            if (questionsData) questionIds.push(questionsData[0].id)
+
+            const tagIds: number[] = []
+            // //for all tags on question, retrieve tag_ids
+            for (const tag of question.tags) {
+                const { data: tagsData, error } = await supabase
+                    .from('tags')
+                    .select('id')
+                    .eq('tag', tag)
+
+                if (error) throw error
+                if (tagsData) tagIds.push(tagsData[0].id)
+            }
+            tagIdsArr.push(tagIds)
+        }
+        console.log(questionIds)
+        console.log(tagIdsArr)
+        const questionTagsInsertArr = tagIdsArr.map((tags: number[], index) => {
+
+            return tags.map((tagId: number) => {
+                return {
+                    question_id: questionIds[index],
+                    tag_id: tagId
+                }
+            })
+        }).flat()
+
+        //insert all question tags into question_tags:
+        // //insert entries into question_tags (question_id, tag_id)
+        for (const questionTag of questionTagsInsertArr) {
+
+            const { data: questionTagsData, error } = await supabase
+                .from('question_tags')
+                .insert(questionTag)
+                .select('*')
+
+
+            if (error) throw error
+            if (questionTagsData) console.log(questionTagsData)
+
+        }
+        //On success, return array of question_ids (in order) to fe to properly upload images
+        return questionIds
+    } catch (error) {
+        return Promise.reject(error)
+    }
 }

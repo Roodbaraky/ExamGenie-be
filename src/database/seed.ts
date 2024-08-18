@@ -93,7 +93,8 @@ async function insertQuestionImages(bucketName: string, destinationPath: string)
 async function insertQuestions() {
     const { data, error } = await supabaseSeedClient
         .from('questions')
-        .insert(questions);
+        .insert(questions)
+        .select()
 
     if (error) console.error('Error inserting questions:', error);
     else console.log('Questions inserted:', data);
@@ -102,7 +103,9 @@ async function insertQuestions() {
 async function insertTags() {
     const { data, error } = await supabaseSeedClient
         .from('tags')
-        .insert(tags);
+        .insert(tags)
+        .select()
+
 
     if (error) console.error('Error inserting tags:', error);
     else console.log('Tags inserted:', data);
@@ -110,7 +113,9 @@ async function insertTags() {
 async function insertQuestionTags() {
     const { data, error } = await supabaseSeedClient
         .from('question_tags')
-        .insert(questionTags);
+        .insert(questionTags)
+        .select()
+
 
     if (error) console.error('Error inserting question tags:', error);
     else console.log('Question tags inserted:', data);
@@ -120,6 +125,8 @@ async function insertClasses() {
     const { data, error } = await supabaseSeedClient
         .from('classes')
         .insert(classes)
+        .select()
+
 
     if (error) console.error('Error inserting classes:', error);
     else console.log('Classes inserted:', data);
@@ -129,6 +136,8 @@ async function insertSoWs() {
     const { data, error } = await supabaseSeedClient
         .from('sow')
         .insert(sows)
+        .select()
+
 
     if (error) console.error('Error inserting SoWs:', error);
     else console.log('SoWs inserted:', data);
@@ -138,6 +147,8 @@ async function insertWeeks() {
     const { data, error } = await supabaseSeedClient
         .from('weeks')
         .insert(weeks)
+        .select()
+
 
     if (error) console.error('Error inserting weeks:', error);
     else console.log('Weeks inserted:', data);
@@ -147,6 +158,8 @@ async function insertWeeksTags() {
     const { data, error } = await supabaseSeedClient
         .from('weeks_tags')
         .insert(weeksTags)
+        .select()
+
 
     if (error) console.error('Error inserting WeeksTags:', error);
     else console.log('WeeksTags inserted:', data);
@@ -157,6 +170,8 @@ async function insertClassSoWs() {
     const { data, error } = await supabaseSeedClient
         .from('class_sow')
         .insert(classSows)
+        .select()
+
 
     if (error) console.error('Error inserting ClassSows:', error);
     else console.log('ClassSows inserted:', data);
@@ -166,6 +181,8 @@ async function insertSoWWeeks() {
     const { data, error } = await supabaseSeedClient
         .from('sow_weeks')
         .insert(sowWeeks)
+        .select()
+
 
     if (error) console.error('Error inserting SowWeeks:', error);
     else console.log('SowWeeks inserted:', data);

@@ -1,6 +1,6 @@
 
 import { describe, expect, it } from 'vitest';
-import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions } from '../src/models/questions';
+import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions, postQuestions } from '../src/models/questions';
 import { Question } from '../src/types/Question';
 
 describe('areTagsValid', () => {
@@ -118,13 +118,13 @@ describe('fetchQuestions', () => {
         expect(checkQuestionsMatchTags(questions, ['money', 'surds'])).toBe(true)
     })
 
-    it('should fetch only questions which are tagged with the specified tags', async()=>{
+    it('should fetch only questions which are tagged with the specified tags', async () => {
         const tagsToUse = ['bidmas']
         const questions = await fetchQuestions({ tagsToUse });
-        questions.forEach(question=>question.tags.forEach(tag=>expect(tag.includes('bidmas')).toBe(true)))
+        questions.forEach(question => question.tags.forEach(tag => expect(tag.includes('bidmas')).toBe(true)))
         tagsToUse.push('nonExistentTag')
         const questions2 = await fetchQuestions({ tagsToUse });
-        questions2.forEach(question=>question.tags.forEach(tag=>expect(tag.includes('bidmas')).toBe(true)))
+        questions2.forEach(question => question.tags.forEach(tag => expect(tag.includes('bidmas')).toBe(true)))
     })
 
     it('should fetch all questions when no tag is provided', async () => {
@@ -172,6 +172,19 @@ describe('fetchQuestions', () => {
     it('should return all questions if limit > no. questions', async () => {
         const limit = 900
         const questions = await fetchQuestions({ limit })
-        expect(questions.length<limit).toBe(true)
+        expect(questions.length < limit).toBe(true)
     })
 });
+
+// need to reseed db for this
+describe('postQuestions', () => {
+    it('should return an array of questionIds when passed an array of question objects', async () => {
+        const exampleQuestionsArr = [
+            { difficulty: "foundation", tags: ["bidmas-basic", "bidmas-with-indices"] },
+            { difficulty: "crossover", tags: ["bidmas-with-indices"] }]
+        const actualResult = await postQuestions(exampleQuestionsArr)
+        expect(Array.isArray(actualResult)).toBe(true)
+        actualResult.forEach((result:number)=> expect(typeof result).toBe('number'))
+    })
+})
+
