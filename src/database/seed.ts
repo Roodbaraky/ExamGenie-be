@@ -1,5 +1,7 @@
 import { seedData } from "./seedData";
 import { supabaseSeedClient } from "./supabaseClient";
+import fs from 'fs'
+import path from 'path'
 
 export const {
     questions,
@@ -23,6 +25,70 @@ async function clearTable(tableName: string, primaryKey: string) {
     else console.log(`${tableName} cleared.`);
 }
 
+async function clearBucket(bucketName: string, path = '') {
+    try {
+        const { data, error: listError } = await supabaseSeedClient
+            .storage
+            .from(bucketName)
+            .list(path, { limit: 100 });
+        if (listError) throw listError;
+
+        if (data.length > 0) {
+            const fileNames = data.map(file => `${path}${file.name}`);
+            const { error: deleteError } = await supabaseSeedClient
+                .storage
+                .from(bucketName)
+                .remove(fileNames);
+
+            if (deleteError) throw deleteError;
+
+            console.log(`Cleared files in bucket: ${bucketName}/${path}`);
+        } else {
+            console.log(`No files found in bucket: ${bucketName}/${path}`);
+        }
+    } catch (error) {
+        console.error(`Error clearing bucket: ${bucketName}/${path}`, error);
+    }
+}
+
+async function uploadImage(filePath: string, bucketName: string, destinationPath: string) {
+    try {
+        const fileName = path.basename(filePath);
+        const fileContent = fs.readFileSync(filePath);
+
+        const { data, error } = await supabaseSeedClient.storage
+            .from(bucketName)
+            .upload(destinationPath + fileName, fileContent, {
+                cacheControl: '3600',
+                upsert: true,
+            });
+
+        if (error) {
+            console.error(`Error uploading ${fileName}:`, error);
+            return;
+        }
+
+        console.log(`Successfully uploaded ${fileName}`);
+    } catch (error) {
+        console.error(`Failed to upload ${filePath}:`, error);
+    }
+}
+
+
+async function insertQuestionImages(bucketName: string, destinationPath: string) {
+    try {
+        const files = fs.readdirSync('src/database/data/questionImages');
+
+        for (const file of files) {
+            const filePath = path.join('src/database/data/questionImages', file);
+
+
+            await uploadImage(filePath, bucketName, destinationPath);
+        }
+    } catch (error) {
+        console.error('Error uploading seed images:', error);
+    }
+}
 
 async function insertQuestions() {
     const { data, error } = await supabaseSeedClient
@@ -117,6 +183,7 @@ export async function seedDatabase() {
         await clearTable('classes', 'id');
         await clearTable('tags', 'id');
         await clearTable('questions', 'id');
+        await clearBucket('questions', 'public/')
 
         await insertQuestions()
         await insertTags()
@@ -127,6 +194,7 @@ export async function seedDatabase() {
         await insertClassSoWs()
         await insertSoWWeeks()
         await insertQuestionTags()
+        await insertQuestionImages('questions', 'public/')
     } catch (err) {
         console.error(err)
     }
