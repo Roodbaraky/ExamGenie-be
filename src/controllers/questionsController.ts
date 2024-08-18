@@ -1,5 +1,5 @@
 import { Request, Response } from "express"
-import { fetchQuestions, fetchTags } from "../models/questions"
+import { fetchQuestions, fetchTags, postQuestions } from "../models/questions"
 import { PostgrestError } from "@supabase/supabase-js"
 
 
@@ -13,7 +13,7 @@ export const getQuestions = async (req: Request, res: Response) => {
                 .send(questions)
             return
         }
-        const { difficulties, className, contentType, recallPeriod, currentWeek, tags } = req.body
+        const { difficulties, className, recallPeriod, currentWeek, tags } = req.body
         const { limit } = req.query as { limit: string }
         const tagsToUse = tags && (!className && !recallPeriod)
             ? tags
@@ -47,6 +47,31 @@ export const getQuestions = async (req: Request, res: Response) => {
                 .status(500)
                 .send('Internal Server Error')
         }
+    }
+
+}
+
+export const addQuestions = async (req: Request, res: Response) => {
+    try {
+
+        const { questions } = req.body
+        //check shape of data
+
+        //should return array of questionIds? which become corresponding images?
+        //this probably has an issue of questions being inserted in order?
+        const questionIds = await postQuestions(questions)
+
+        //check question Ids
+
+        res
+            .status(200)
+            .send(questionIds)
+
+    } catch (error) {
+        console.error(error)
+        res
+            .status(500)
+            .send(error)
     }
 
 }

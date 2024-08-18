@@ -2,7 +2,7 @@ import cors from 'cors';
 import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import { getClasses } from './controllers/classesController';
-import { getQuestions } from './controllers/questionsController';
+import { getQuestions, addQuestions } from './controllers/questionsController';
 import { getWeeksFromClassName } from './controllers/weeksController';
 
 dotenv.config();
@@ -28,8 +28,11 @@ app.route('/')
     });
 
 app.route('/questions')
-    .get(getQuestions)
+    // .get(getQuestions)
     .post(getQuestions)
+
+app.route('/upload')
+    .post(addQuestions)
 
 app.route('/classes')
     .get(getClasses)
@@ -38,7 +41,7 @@ app.route('/weeks')
     .get(getWeeksFromClassName)
 
 app.route('sow')
-    
+
 const port = process.env.PORT || 3000;
 
 app.listen(port, () => {

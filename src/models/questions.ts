@@ -118,9 +118,6 @@ export const fetchQuestions = async ({
     tagsToUse = [],
     difficulties = defaultDifficulties,
     limit = 20,
-    className,
-    contentType,
-    recallPeriod,
 }:
     FetchQuestionsProps
 ): Promise<Question[]> => {
@@ -177,3 +174,11 @@ export const fetchQuestions = async ({
         return Promise.reject(error);
     }
 };
+export const postQuestions = async (questions: Question[]) => {
+    //iterate through questions
+    //insert all questions into questions (, difficulty)
+    //insert all question tags into question_tags:
+    // //for all tags on question, retrieve tag_ids
+    // //insert entries into question_tags (question_id, tag_id)
+    //On success, return array of question_ids (in order) to fe to properly upload images
+}

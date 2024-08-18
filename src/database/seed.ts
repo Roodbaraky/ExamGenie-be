@@ -13,6 +13,17 @@ export const {
     classSows
 } = seedData
 
+async function clearTable(tableName: string, primaryKey: string) {
+    const { error } = await supabaseSeedClient
+        .from(tableName)
+        .delete()
+        .neq(primaryKey, 0)
+
+    if (error) console.error(`Error clearing table ${tableName}:`, error);
+    else console.log(`${tableName} cleared.`);
+}
+
+
 async function insertQuestions() {
     const { data, error } = await supabaseSeedClient
         .from('questions')
@@ -97,6 +108,16 @@ async function insertSoWWeeks() {
 
 export async function seedDatabase() {
     try {
+        await clearTable('question_tags', 'question_id');
+        await clearTable('sow_weeks', 'sow_id');
+        await clearTable('class_sow', 'class_id');
+        await clearTable('weeks_tags', 'tag_id');
+        await clearTable('weeks', 'id');
+        await clearTable('sow', 'id');
+        await clearTable('classes', 'id');
+        await clearTable('tags', 'id');
+        await clearTable('questions', 'id');
+
         await insertQuestions()
         await insertTags()
         await insertClasses()

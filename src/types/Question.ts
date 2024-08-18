@@ -1,6 +1,6 @@
 export interface Question {
     URL?: string
-    id: number
+    id?: number
     difficulty: string
     tags: string[]
 }
