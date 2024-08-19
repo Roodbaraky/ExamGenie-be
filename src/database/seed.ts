@@ -30,7 +30,7 @@ async function clearBucket(bucketName: string, path = '') {
         const { data, error: listError } = await supabaseSeedClient
             .storage
             .from(bucketName)
-            .list(path, { limit: 100 });
+            .list(path, { limit: 500 });
         if (listError) throw listError;
 
         if (data.length > 0) {

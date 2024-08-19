@@ -152,10 +152,10 @@ export const fetchQuestions = async ({
     }
 };
 
-const convertFromBase64ToImage = (dataString: string) => {
-    const truncatedDataString = dataString.replace(/^data:image\/\w+;base64,/, '')
-    const imageRepresentation = Buffer.from(truncatedDataString, 'base64')
-    return imageRepresentation
+const convertFromBase64ToImage = (base64ImageString: string) => {
+    const cleanedBase64String = base64ImageString.replace(/^data:image\/\w+;base64,/, '')
+    const imageBuffer = Buffer.from(cleanedBase64String, 'base64')
+    return imageBuffer
 }
 const uploadPNGsToBucket = async (itemIds: number[], imageArr: Buffer[], bucketName: string) => {
     for (let i = 0; i < imageArr.length; i++) {
