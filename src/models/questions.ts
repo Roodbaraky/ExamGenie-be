@@ -22,15 +22,14 @@ export const areDifficultiesValid = (difficulties: Difficulties) => {
     return true;
 };
 
-
 const defaultDifficulties = {
     foundation: true,
     crossover: true,
     higher: true,
     extended: true
 }
-//does this name imply it should return true/false? Maybe refactor for this
-export const areFetchTagsArgsValid = ({
+
+export const checkFetchTagsArgs = ({
     className,
     currentWeek,
     recallPeriod }: FetchTagsFromSowProps) => {
@@ -68,7 +67,7 @@ export const fetchTagsFromSow = async ({
 
 
     try {
-        await areFetchTagsArgsValid(
+        await checkFetchTagsArgs(
             {
                 className,
                 currentWeek,
