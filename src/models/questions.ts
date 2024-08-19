@@ -1,27 +1,9 @@
 import dotenv from "dotenv";
 import { supabase } from "../database/supabaseClient";
-import { Question } from "../types/Question";
+import { Difficulties, DifficultyLevel, FetchQuestionsProps, FetchTagsFromSowProps, NewQuestion, Question } from "../types/Question";
 dotenv.config()
 
-export type DifficultyLevel = 'foundation' | 'crossover' | 'higher' | 'extended';
-export type Difficulties = {
-    [key in DifficultyLevel]?: boolean;
-};
 
-export interface FetchQuestionsProps {
-    tagsToUse?: string[],
-    difficulties?: Difficulties,
-    limit?: number | string,
-    className?: string,
-    contentType?: string,
-    recallPeriod?: string | number
-}
-
-export interface FetchTagsFromSowProps {
-    className: string,
-    currentWeek: number,
-    recallPeriod: number
-}
 export const areTagsValid = (tags: string[]): boolean => {
     if (!Array.isArray(tags)) return false;
     return tags.every(tag => typeof tag === 'string' && isNaN(Number(tag)));
@@ -230,9 +212,6 @@ const deleteEntriesForFailedUploads = async (itemIds: number[], table: string) =
     }
 }
 
-interface NewQuestion extends Question {
-    image: string
-}
 
 export const postQuestions = async (questions: NewQuestion[]) => {
     //iterate through questions
