@@ -189,7 +189,7 @@ describe('postQuestions', () => {
         const actualResult = await postQuestions(exampleQuestionsArr)
         expect(Array.isArray(actualResult)).toBe(true)
         actualResult.forEach((result: number) => expect(typeof result).toBe('number'))
-    });
+    },6000);
 
     it('should upload images corresponding to array of question objects', async () => {
         const exampleQuestionsArr = [

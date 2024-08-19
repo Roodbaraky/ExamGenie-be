@@ -176,6 +176,31 @@ const convertFromBase64ToImage = (dataString: string) => {
     const imageRepresentation = Buffer.from(truncatedDataString, 'base64')
     return imageRepresentation
 }
+const uploadPNGsToBucket = async (questionIds: number[], imageArr: Buffer[], bucketName: string) => {
+    for (let i = 0; i < imageArr.length; i++) {
+        const { data, error } = await supabase.storage
+            .from(bucketName)
+            .upload(`public/${questionIds[i]}.png`, imageArr[i], {
+                contentType: 'image/png',
+                cacheControl: '3600',
+
+            });
+
+        if (error) {
+            console.error(
+                `Error uploading image for question ${questionIds[i]}:`,
+                error
+            );
+            return Promise.reject(error)
+        } else {
+            console.log(
+                `Successfully uploaded image for question ${questionIds[i]}:`,
+                data
+            );
+            
+        }
+    }
+}
 
 interface NewQuestion extends Question {
     image: string
@@ -236,30 +261,29 @@ export const postQuestions = async (questions: NewQuestion[]) => {
 
         }
         const reconstructedImages = imgsArr.map((imgData) => convertFromBase64ToImage(imgData))
-        // const imageDataArr = imgsArr.map((imgData) => imgData.replace(/^data:image\/\w+;base64,/, ''))
-        // const reconstructedImages = imageDataArr.map((imgData) => Buffer.from(imgData, 'base64'))
-        for (let i = 0; i < reconstructedImages.length; i++) {
-            const { data, error } = await supabase.storage
-                .from("questions")
-                .upload(`public/${questionIds[i]}.png`, reconstructedImages[i], {
-                    contentType: 'image/png',
-                    cacheControl: '3600',
+        await uploadPNGsToBucket(questionIds, reconstructedImages, 'questions')
+        // for (let i = 0; i < reconstructedImages.length; i++) {
+        //     const { data, error } = await supabase.storage
+        //         .from("questions")
+        //         .upload(`public/${questionIds[i]}.png`, reconstructedImages[i], {
+        //             contentType: 'image/png',
+        //             cacheControl: '3600',
 
-                });
+        //         });
 
-            if (error) {
-                console.error(
-                    `Error uploading image for question ${questionIds[0]}:`,
-                    error
-                );
-                return Promise.reject(error)
-            } else {
-                console.log(
-                    `Successfully uploaded image for question ${questionIds[0]}:`,
-                    data
-                );
-            }
-        }
+        //     if (error) {
+        //         console.error(
+        //             `Error uploading image for question ${questionIds[0]}:`,
+        //             error
+        //         );
+        //         return Promise.reject(error)
+        //     } else {
+        //         console.log(
+        //             `Successfully uploaded image for question ${questionIds[0]}:`,
+        //             data
+        //         );
+        //     }
+        // }
         //return questionIds via API (useful for testing purposes at the very least)
         return questionIds
     } catch (error) {
