@@ -2,8 +2,9 @@
   "name": "examgenie",
   "version": "1.0.0",
   "main": "index.js",
+  "testTimeout": 15000,
   "scripts": {
-    "test": "vitest",
+    "test": "vitest --config vitest.config.mts",
     "coverage": "vitest run --coverage",
     "dev": "nodemon src/index.ts",
     "seed": "ts-node src/database/seed.ts"

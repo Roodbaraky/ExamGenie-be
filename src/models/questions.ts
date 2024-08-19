@@ -176,11 +176,11 @@ const convertFromBase64ToImage = (dataString: string) => {
     const imageRepresentation = Buffer.from(truncatedDataString, 'base64')
     return imageRepresentation
 }
-const uploadPNGsToBucket = async (questionIds: number[], imageArr: Buffer[], bucketName: string) => {
+const uploadPNGsToBucket = async (itemIds: number[], imageArr: Buffer[], bucketName: string) => {
     for (let i = 0; i < imageArr.length; i++) {
         const { data, error } = await supabase.storage
             .from(bucketName)
-            .upload(`public/${questionIds[i]}.png`, imageArr[i], {
+            .upload(`public/${itemIds[i]}.png`, imageArr[i], {
                 contentType: 'image/png',
                 cacheControl: '3600',
 
@@ -188,17 +188,45 @@ const uploadPNGsToBucket = async (questionIds: number[], imageArr: Buffer[], buc
 
         if (error) {
             console.error(
-                `Error uploading image for question ${questionIds[i]}:`,
+                `Error uploading image for question ${itemIds[i]}:`,
                 error
             );
             return Promise.reject(error)
         } else {
             console.log(
-                `Successfully uploaded image for question ${questionIds[i]}:`,
+                `Successfully uploaded image for question ${itemIds[i]}:`,
                 data
             );
-            
+
         }
+    }
+}
+
+const checkUploads = async (itemIds: number[], bucketName: string) => {
+    const expectedFilenames = itemIds.map((result) => result + '.png')
+    const { data, error } = await supabase.storage
+        .from(bucketName)
+        .list('public')
+    if (error) throw error
+
+    const fileNames = data.map((file) => file.name)
+    expectedFilenames.forEach((expectedFilename) => {
+        if (fileNames.includes(expectedFilename)) return false
+    }
+    )
+    return true
+}
+
+const deleteEntriesForFailedUploads = async (itemIds: number[], table: string) => {
+    const { data, error } = await supabase.from(table)
+        .delete()
+        .in('id', itemIds)
+        .select()
+
+    if (error) throw error
+    if (data) {
+        console.log('Successfully deleted:', data)
+        return true
     }
 }
 
@@ -261,29 +289,10 @@ export const postQuestions = async (questions: NewQuestion[]) => {
 
         }
         const reconstructedImages = imgsArr.map((imgData) => convertFromBase64ToImage(imgData))
+
         await uploadPNGsToBucket(questionIds, reconstructedImages, 'questions')
-        // for (let i = 0; i < reconstructedImages.length; i++) {
-        //     const { data, error } = await supabase.storage
-        //         .from("questions")
-        //         .upload(`public/${questionIds[i]}.png`, reconstructedImages[i], {
-        //             contentType: 'image/png',
-        //             cacheControl: '3600',
-
-        //         });
-
-        //     if (error) {
-        //         console.error(
-        //             `Error uploading image for question ${questionIds[0]}:`,
-        //             error
-        //         );
-        //         return Promise.reject(error)
-        //     } else {
-        //         console.log(
-        //             `Successfully uploaded image for question ${questionIds[0]}:`,
-        //             data
-        //         );
-        //     }
-        // }
+        const imagesUploaded = await checkUploads(questionIds, 'questions')
+        if (!imagesUploaded) deleteEntriesForFailedUploads(questionIds, 'questions')
         //return questionIds via API (useful for testing purposes at the very least)
         return questionIds
     } catch (error) {

@@ -5,6 +5,7 @@ import { Question } from '../src/types/Question';
 import { testImage } from './testImage';
 import { supabaseSeedClient } from '../src/database/supabaseClient';
 
+
 describe('areTagsValid', () => {
     it('should return true for valid tags array', () => {
         const validTags: string[] = [
@@ -175,7 +176,7 @@ describe('fetchQuestions', () => {
         const limit = 900
         const questions = await fetchQuestions({ limit })
         expect(questions.length < limit).toBe(true)
-    }, 3600)
+    })
 });
 
 // need to reseed db for this
