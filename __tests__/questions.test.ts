@@ -2,6 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions, postQuestions } from '../src/models/questions';
 import { Question } from '../src/types/Question';
+import { testImage } from './testImage';
+import { supabaseSeedClient } from '../src/database/supabaseClient';
 
 describe('areTagsValid', () => {
     it('should return true for valid tags array', () => {
@@ -173,18 +175,44 @@ describe('fetchQuestions', () => {
         const limit = 900
         const questions = await fetchQuestions({ limit })
         expect(questions.length < limit).toBe(true)
-    })
+    }, 3600)
 });
 
 // need to reseed db for this
 describe('postQuestions', () => {
     it('should return an array of questionIds when passed an array of question objects', async () => {
+
         const exampleQuestionsArr = [
-            { difficulty: "foundation", tags: ["bidmas-basic", "bidmas-with-indices"] },
-            { difficulty: "crossover", tags: ["bidmas-with-indices"] }]
+            { difficulty: "foundation", tags: ["bidmas-basic", "bidmas-with-indices"], image: testImage },
+            { difficulty: "crossover", tags: ["bidmas-with-indices"], image: testImage }
+        ]
         const actualResult = await postQuestions(exampleQuestionsArr)
         expect(Array.isArray(actualResult)).toBe(true)
-        actualResult.forEach((result:number)=> expect(typeof result).toBe('number'))
-    })
+        actualResult.forEach((result: number) => expect(typeof result).toBe('number'))
+    });
+
+    it('should upload images corresponding to array of question objects', async () => {
+        const exampleQuestionsArr = [
+            { difficulty: "foundation", tags: ["bidmas-basic", "bidmas-with-indices"], image: testImage },
+            { difficulty: "crossover", tags: ["bidmas-with-indices"], image: testImage }
+        ]
+        const actualResult = await postQuestions(exampleQuestionsArr)
+        const expectedFilenames = actualResult.map((result) => result + '.png')
+        expect(Array.isArray(actualResult)).toBe(true)
+        const { data, error } = await supabaseSeedClient.storage
+            .from('questions')
+            .list('public')
+        if (error) throw error
+        if (data) {
+            const fileNames = data.map((file) => file.name)
+
+            expectedFilenames.forEach((expectedFilename) => expect(fileNames.includes(expectedFilename)))
+        }
+    }, 6000)
+
+    //need to do some complex mock to check if image load interrupted, if entries in questions table are deleted
+    //for now, I can effectively just re-run the tests as the 2nd run will fail if question_ids exist with no corresponding image
+
+
 })
 

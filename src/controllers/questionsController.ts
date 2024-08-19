@@ -53,16 +53,8 @@ export const getQuestions = async (req: Request, res: Response) => {
 
 export const addQuestions = async (req: Request, res: Response) => {
     try {
-
-        const  questions  = req.body
-        //check shape of data
-        console.log(questions)
-
-        //should return array of questionIds? which become corresponding images?
-        //this probably has an issue of questions being inserted in order?
+        const questions = req.body
         const questionIds = await postQuestions(questions)
-
-        //check question Ids
 
         res
             .status(200)

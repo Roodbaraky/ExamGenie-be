@@ -1,8 +1,6 @@
-
 import dotenv from "dotenv";
-import { supabase, supabaseSeedClient } from "../database/supabaseClient";
+import { supabase } from "../database/supabaseClient";
 import { Question } from "../types/Question";
-import { queryObjects } from "v8";
 dotenv.config()
 
 export type DifficultyLevel = 'foundation' | 'crossover' | 'higher' | 'extended';
@@ -166,19 +164,29 @@ export const fetchQuestions = async ({
                 ? questionImgUrls[index].value
                 : null
             return questionObject
-        }
-        )
-        // return questionImgUrls.filter(result => result.status === 'fulfilled').map((resultObject) => resultObject.value)
+        })
         return combinedQuestionsObjectArr
     } catch (error) {
         return Promise.reject(error);
     }
 };
-export const postQuestions = async (questions: Question[]) => {
+
+const convertFromBase64ToImage = (dataString: string) => {
+    const truncatedDataString = dataString.replace(/^data:image\/\w+;base64,/, '')
+    const imageRepresentation = Buffer.from(truncatedDataString, 'base64')
+    return imageRepresentation
+}
+
+interface NewQuestion extends Question {
+    image: string
+}
+
+export const postQuestions = async (questions: NewQuestion[]) => {
     //iterate through questions
     try {
         const questionIds: number[] = []
         const tagIdsArr: number[][] = []
+        const imgsArr: string[] = []
         for (const question of questions) {
             //insert all questions into questions (, difficulty)
             const { data: questionsData, error } = await supabase
@@ -201,9 +209,8 @@ export const postQuestions = async (questions: Question[]) => {
                 if (tagsData) tagIds.push(tagsData[0].id)
             }
             tagIdsArr.push(tagIds)
+            imgsArr.push(question.image ? question.image : '')
         }
-        console.log(questionIds)
-        console.log(tagIdsArr)
         const questionTagsInsertArr = tagIdsArr.map((tags: number[], index) => {
 
             return tags.map((tagId: number) => {
@@ -225,10 +232,35 @@ export const postQuestions = async (questions: Question[]) => {
 
 
             if (error) throw error
-            if (questionTagsData) console.log(questionTagsData)
+            if (!questionTagsData.length) throw error
 
         }
-        //On success, return array of question_ids (in order) to fe to properly upload images
+        const reconstructedImages = imgsArr.map((imgData) => convertFromBase64ToImage(imgData))
+        // const imageDataArr = imgsArr.map((imgData) => imgData.replace(/^data:image\/\w+;base64,/, ''))
+        // const reconstructedImages = imageDataArr.map((imgData) => Buffer.from(imgData, 'base64'))
+        for (let i = 0; i < reconstructedImages.length; i++) {
+            const { data, error } = await supabase.storage
+                .from("questions")
+                .upload(`public/${questionIds[i]}.png`, reconstructedImages[i], {
+                    contentType: 'image/png',
+                    cacheControl: '3600',
+
+                });
+
+            if (error) {
+                console.error(
+                    `Error uploading image for question ${questionIds[0]}:`,
+                    error
+                );
+                return Promise.reject(error)
+            } else {
+                console.log(
+                    `Successfully uploaded image for question ${questionIds[0]}:`,
+                    data
+                );
+            }
+        }
+        //return questionIds via API (useful for testing purposes at the very least)
         return questionIds
     } catch (error) {
         return Promise.reject(error)

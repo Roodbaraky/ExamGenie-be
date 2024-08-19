@@ -1,9 +1,10 @@
 import express from 'express';
 import request from 'supertest';
-import { describe, expect, expectTypeOf, it } from 'vitest';
+import { afterAll, describe, expect, expectTypeOf, it } from 'vitest';
 import { app } from '../src';
 import { checkQuestionsMatchTags, validateQuestionObject } from './questions.test';
 import { Question } from '../src/types/Question';
+import { seedDatabase } from '../src/database/seed';
 
 app.use(express.json());
 
@@ -48,9 +49,9 @@ describe('---- /questions ----', () => {
             expect(Array.isArray(response.body)).toBe(true)
             response.body.forEach((arrayItem: Question) => {
                 expect(arrayItem).toMatchObject({
-                    URL: expect.any(String),
                     id: expect.any(Number),
                     difficulty: expect.any(String),
+                    URL: expect.any(String),
                     tags: expect.arrayContaining([expect.any(String)])
                 });
             });
