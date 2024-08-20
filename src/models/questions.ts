@@ -93,6 +93,19 @@ export const fetchTagsFromSow = async ({
         return Promise.reject(error);
     }
 }
+
+const getImgURLFromId = async (id: number, bucketName: string) => {
+
+    const { data, error } = await supabase.storage
+        .from(bucketName)
+        .createSignedUrl(`public/${id}.png`, 60 * 60);
+
+    if (error) {
+        return Promise.reject(error)
+    }
+    return data.signedUrl
+
+}
 export const fetchQuestions = async ({
     tagsToUse = [],
     difficulties = defaultDifficulties,
@@ -130,22 +143,25 @@ export const fetchQuestions = async ({
             return Promise.reject(error)
         }
         const idsToFetchImagesOf = data.map((questionObject: Question) => questionObject.id)
-        const questionImgUrls = await Promise.allSettled(idsToFetchImagesOf.map(async (questionId: number) => {
-            const { data, error } = await supabase.storage
-                .from('questions')
-                .createSignedUrl(`public/${questionId}.png`, 60 * 60);
+        const questionImgUrls = await Promise.allSettled(idsToFetchImagesOf.map(
+            async (questionId: number) => {
+                return await getImgURLFromId(questionId, 'questions')
+                // const { data, error } = await supabase.storage
+                //     .from('questions')
+                //     .createSignedUrl(`public/${questionId}.png`, 60 * 60);
 
-            if (error) {
-                return Promise.reject(error)
-            }
-            return data.signedUrl
-        }))
+                // if (error) {
+                //     return Promise.reject(error)
+                // }
+                // return data.signedUrl
+            }))
         const combinedQuestionsObjectArr = data.map((questionObject: Question, index: number) => {
             questionObject.URL = questionImgUrls[index].status === 'fulfilled'
                 ? questionImgUrls[index].value
                 : null
             return questionObject
         })
+
         return combinedQuestionsObjectArr
     } catch (error) {
         return Promise.reject(error);
