@@ -146,15 +146,10 @@ export const fetchQuestions = async ({
         const questionImgUrls = await Promise.allSettled(idsToFetchImagesOf.map(
             async (questionId: number) => {
                 return await getImgURLFromId(questionId, 'questions')
-                // const { data, error } = await supabase.storage
-                //     .from('questions')
-                //     .createSignedUrl(`public/${questionId}.png`, 60 * 60);
-
-                // if (error) {
-                //     return Promise.reject(error)
-                // }
-                // return data.signedUrl
             }))
+            //do the same for 'answers' bucket
+            //spread arrays into each other
+            //half the returned array at client --> generate questions pdf, wait, then answers pdf
         const combinedQuestionsObjectArr = data.map((questionObject: Question, index: number) => {
             questionObject.URL = questionImgUrls[index].status === 'fulfilled'
                 ? questionImgUrls[index].value

@@ -4,7 +4,6 @@ import { PostgrestError } from "@supabase/supabase-js"
 
 
 export const getQuestions = async (req: Request, res: Response) => {
-
     try {
         if (Object.keys(req.body).length === 0) {
             const questions = await fetchQuestions({})

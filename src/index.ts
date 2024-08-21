@@ -5,6 +5,7 @@ import { getClasses } from './controllers/classesController';
 import { addQuestions, getQuestions } from './controllers/questionsController';
 import { getTags } from './controllers/tagsController';
 import { getWeeksFromClassName } from './controllers/weeksController';
+import { authenticateToken } from './controllers/tokenMiddleware';
 
 dotenv.config();
 export const app = express();
@@ -20,7 +21,7 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
+app.use(authenticateToken)
 app.route('/')
     .get((req: Request, res: Response) => {
         res.status(200).send('Hi, API is working');
