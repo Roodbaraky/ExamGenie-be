@@ -5,7 +5,7 @@ import { getClasses } from './controllers/classesController';
 import { addQuestions, getQuestions } from './controllers/questionsController';
 import { getTags } from './controllers/tagsController';
 import { getWeeksFromClassName } from './controllers/weeksController';
-import { authenticateToken } from './controllers/tokenMiddleware';
+import { authenticateToken } from './middleware/token';
 
 dotenv.config();
 export const app = express();
