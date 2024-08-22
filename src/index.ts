@@ -6,6 +6,7 @@ import { addQuestions, getQuestions } from './controllers/questionsController';
 import { getTags } from './controllers/tagsController';
 import { getWeeksFromClassName } from './controllers/weeksController';
 import { authenticateToken } from './middleware/token';
+import { checkRole } from './middleware/user';
 
 dotenv.config();
 export const app = express();
@@ -28,21 +29,32 @@ app.route('/')
     });
 
 app.route('/questions')
-    // .get(getQuestions)
     .post(getQuestions)
 
 app.route('/upload')
-    .post(addQuestions)
+    .post(addQuestions )
+    // .post(checkRole('admin'), addQuestions )
+
 
 app.route('/classes')
     .get(getClasses)
+    // .post(checkRole('admin'), addClass )
+
 
 app.route('/weeks')
     .get(getWeeksFromClassName)
+    // .post(checkRole('admin'), addWeeks )
+
 
 app.route('/tags')
     .get(getTags)
+    // .post(checkRole('admin'), addTags )
+
 app.route('sow')
+    // .post(checkRole('admin'), addSow)
+    // .patch(checkRole('moderator'), updateSow )
+
+
 
 const port = process.env.PORT || 3000;
 

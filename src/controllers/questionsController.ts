@@ -22,7 +22,7 @@ export const getQuestions = async (req: Request, res: Response) => {
         if (!questions || questions.length === 0) {
             res
                 .status(404)
-                .send('Questions corresponding to filters not found')
+                .send(Error('Questions corresponding to filters not found'))
         }
         else if (questions) {
             res
@@ -32,7 +32,7 @@ export const getQuestions = async (req: Request, res: Response) => {
     } catch (error) {
         console.log(error)
         const err = error as Error
-        if (err.message === 'Invalid tags' || err.message === 'Invalid difficulties') {
+        if (err && err.message === 'Invalid tags' || err && err.message === 'Invalid difficulties') {
             res.status(400).send(err.message)
         }
         else if ((error as PostgrestError).details === 'The result contains 0 rows') {

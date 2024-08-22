@@ -1,5 +1,7 @@
-import { NextFunction, Request, Response } from "express";
+import { NextFunction,  Response } from "express";
+
 import { supabase } from "../database/supabaseClient";
+import { CustomRequest } from "./token";
 
 export const checkUser = async (jwt: string) => {
     try {
@@ -10,8 +12,8 @@ export const checkUser = async (jwt: string) => {
     }
 };
 
-export const roleMiddleware = (requiredRole: string) => {
-    return async (req: Request, res: Response, next: NextFunction) => {
+export const checkRole = (requiredRole: string) => {
+    return async (req: CustomRequest, res: Response, next: NextFunction) => {
         const token = req.headers.authorization?.split(' ')[1];
 
         if (!token) {

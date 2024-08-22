@@ -61,6 +61,7 @@ async function uploadImage(filePath: string, bucketName: string, destinationPath
             .upload(destinationPath + fileName, fileContent, {
                 cacheControl: '3600',
                 upsert: true,
+                contentType:'image/png',
             });
 
         if (error) {

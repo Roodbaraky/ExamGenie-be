@@ -74,8 +74,7 @@ export const fetchTagsFromSow = async ({
                 recallPeriod
             }
         )
-        //Is this strictly necessary, or just another db call that could slow down requests?
-        //It shouldn't be possible to request a class that doesn't exist, because all existing classes are displayed.
+
         await checkIfClassExists(className)
 
         const { data, error } = await supabase
@@ -95,7 +94,6 @@ export const fetchTagsFromSow = async ({
 }
 
 const getImgURLFromId = async (id: number, bucketName: string) => {
-
     const { data, error } = await supabase.storage
         .from(bucketName)
         .createSignedUrl(`public/${id}.png`, 60 * 60);
@@ -147,17 +145,30 @@ export const fetchQuestions = async ({
             async (questionId: number) => {
                 return await getImgURLFromId(questionId, 'questions')
             }))
-            //do the same for 'answers' bucket
-            //spread arrays into each other
-            //half the returned array at client --> generate questions pdf, wait, then answers pdf
+        //do the same for 'answers' bucket
+        //spread arrays into each other
+        //half the returned array at client --> generate questions pdf, wait, then answers pdf
+        const answerImgUrls = await Promise.allSettled(idsToFetchImagesOf.map(
+            async (questionId: number) => {
+                return await getImgURLFromId(questionId, 'answers')
+            }))
+
         const combinedQuestionsObjectArr = data.map((questionObject: Question, index: number) => {
             questionObject.URL = questionImgUrls[index].status === 'fulfilled'
                 ? questionImgUrls[index].value
                 : null
             return questionObject
         })
+        const newData = structuredClone(data)
+        //do something better than this, shouldn't mutate data at all really
+        const combinedAnswersObjectArr = newData.map((answerObject: Question, index: number) => {
+            answerObject.URL = answerImgUrls[index].status === 'fulfilled'
+                ? answerImgUrls[index].value
+                : null
+            return answerObject
+        })
 
-        return combinedQuestionsObjectArr
+        return [combinedQuestionsObjectArr, combinedAnswersObjectArr]
     } catch (error) {
         return Promise.reject(error);
     }

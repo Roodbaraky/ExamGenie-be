@@ -7,7 +7,7 @@ const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY
 const SUPABASE_KEY = process.env.SUPABASE_KEY 
 
 
-export const supabase = createClient(SUPABASE_URL!, SUPABASE_KEY!)
+export const supabase = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
 
 //Connect with service key to bypass RLS
 export const supabaseSeedClient = createClient(SUPABASE_URL!, SUPABASE_SERVICE_KEY!)
