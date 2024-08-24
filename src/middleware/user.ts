@@ -1,11 +1,17 @@
-import { NextFunction,  Response } from "express";
+import { NextFunction, Response } from "express";
 
-import { supabase } from "../database/supabaseClient";
+import { User } from "@supabase/supabase-js";
+import { jwtDecode } from "jwt-decode";
 import { CustomRequest } from "./token";
-
+interface CustomUser extends User{
+    user_role:string
+}
 export const checkUser = async (jwt: string) => {
     try {
-        const { data: { user } } = await supabase.auth.getUser(jwt);
+
+        console.log(jwtDecode(jwt), '<---- test')
+        const user = jwtDecode(jwt) as CustomUser
+        //add validation of user attributes here
         return user;
     } catch (error) {
         return Promise.reject(error);
@@ -30,14 +36,14 @@ export const checkRole = (requiredRole: string) => {
                     .status(401)
                     .send({ message: 'No user' });
             }
-
-            if (user.role !== requiredRole) {
+            
+            if (user.user_role !== requiredRole) {
                 return res
                     .status(403)
                     .send({ message: 'Access denied' });
             }
 
-         
+
             req.user = user;
 
             next();

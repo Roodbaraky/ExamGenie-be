@@ -54,7 +54,9 @@ export const getQuestions = async (req: Request, res: Response) => {
 export const addQuestions = async (req: Request, res: Response) => {
     try {
         const questions = req.body
-        const questionIds = await postQuestions(questions)
+        const stringifiedToken = req.headers['authorization']?.split(' ')[1]
+        const token = stringifiedToken ? JSON.parse(stringifiedToken) : null
+        const questionIds =token? await postQuestions(questions, token):[]
 
         res
             .status(200)

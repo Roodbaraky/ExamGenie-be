@@ -78,19 +78,6 @@ describe('fetchTagsFromSow', () => {
 
         }
     });
-    //This next test will need to evaluate how negative results of currentWeek - recallPeriod are handled i.e. it should recall topics from the previous scheme of work, need to decide how to approach this and seed db with data that can verify it, inadequate at present.
-    // it.only('should', async ()=>{
-    //     try {
-    //         const exampleArgs: FetchTagsFromSowProps = { className: '9xPb', currentWeek: 1, recallPeriod: 5 }
-    //         const tags = await fetchTagsFromSow(exampleArgs)
-    //         console.log(tags)
-    //         expect(tags).toBeUndefined()
-    //     } catch (error) {
-    //         console.error(error)
-    //         expect((error as Error).message).toBe('Invalid className')
-
-    //     }
-    // })
 
     it('should error if queried with a valid, but non-existent className', async () => {
         try {

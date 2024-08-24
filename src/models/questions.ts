@@ -50,6 +50,7 @@ export const fetchQuestions = async ({
     tagsToUse = [],
     difficulties = defaultDifficulties,
     limit = 20,
+
 }:
     FetchQuestionsProps
 ): Promise<Question[]> => {
@@ -128,8 +129,13 @@ export const fetchTagIdsFromQuestion = async (question: Question) => {
     }
     return tagIds
 }
+interface Token {
+    access_token: string
+    refresh_token: string
+}
+export const insertQuestions = async (question: Question, token?: Token) => {
 
-export const insertQuestions = async (question: Question) => {
+    if(token)supabase.auth.setSession(token)
     const { data: questionsData, error } = await supabase
         .from('questions')
         .insert({ id: Math.ceil(Date.now() + Math.random()), difficulty: question.difficulty })
@@ -140,13 +146,13 @@ export const insertQuestions = async (question: Question) => {
     if (questionsData) return questionsData[0].id
 }
 
-export const postQuestions = async (questions: NewQuestion[]) => {
+export const postQuestions = async (questions: NewQuestion[], token: Token) => {
     try {
         const questionIds: number[] = []
         const tagIdsArr: number[][] = []
         const imgsArr: string[] = []
         for (const question of questions) {
-            const questionId = await insertQuestions(question)
+            const questionId = await insertQuestions(question, token)
             questionIds.push(questionId)
             const tagIds = await fetchTagIdsFromQuestion(question)
             tagIdsArr.push(tagIds)

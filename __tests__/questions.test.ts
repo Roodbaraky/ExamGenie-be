@@ -84,7 +84,8 @@ export const validateQuestionObject = (question: Question, difficulty: string | 
     expect(question).toMatchObject({
         id: expect.any(Number),
         difficulty: difficulty ? difficulty : expect.any(String),
-        tags: expect.any(Array)
+        tags: expect.any(Array),
+        URL: expect.any(String)
     })
 };
 export const checkQuestionsMatchTags = (questions: Question[], tags: string[]): boolean => {

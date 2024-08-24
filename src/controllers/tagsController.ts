@@ -15,6 +15,6 @@ export const getTags = async (req: Request, res: Response) => {
                 .send('No tags found')
         }
     } catch (error) {
-
+        console.error(error)
     }
 }

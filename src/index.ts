@@ -6,6 +6,7 @@ import { addQuestions, getQuestions } from './controllers/questionsController';
 import { getTags } from './controllers/tagsController';
 import { getWeeksFromClassName } from './controllers/weeksController';
 import { authenticateToken } from './middleware/token';
+import { checkRole } from './middleware/user';
 
 dotenv.config();
 export const app = express();
@@ -31,8 +32,8 @@ app.route('/questions')
     .post(getQuestions)
 
 app.route('/upload')
-    .post(addQuestions )
-    // .post(checkRole('admin'), addQuestions )
+    // .post(addQuestions )
+    .post(checkRole('admin'), addQuestions )
 
 
 app.route('/classes')
