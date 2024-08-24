@@ -73,15 +73,16 @@ export const fetchQuestions = async ({
 
         const idsToFetchImagesOf = data.map((questionObject: Question) => questionObject.id)
 
-        const questionImgUrls = await Promise.allSettled(idsToFetchImagesOf.map(
-            async (questionId: number) => {
-                return await getImgURLFromId(questionId, 'questions')
-            }))
-
-        const answerImgUrls = await Promise.allSettled(idsToFetchImagesOf.map(
-            async (questionId: number) => {
-                return await getImgURLFromId(questionId, 'answers')
-            }))
+        const [questionImgUrls, answerImgUrls] = await Promise.all([
+            Promise.allSettled(idsToFetchImagesOf.map(
+                async (questionId: number) => {
+                    return await getImgURLFromId(questionId, 'questions')
+                })),
+            Promise.allSettled(idsToFetchImagesOf.map(
+                async (questionId: number) => {
+                    return await getImgURLFromId(questionId, 'answers')
+                }))
+        ])
 
         const combinedQuestionsObjectArr = data.map((questionObject: Question, index: number) => ({
             ...questionObject,
@@ -135,7 +136,7 @@ interface Token {
 }
 export const insertQuestions = async (question: Question, token?: Token) => {
 
-    if(token)supabase.auth.setSession(token)
+    if (token) supabase.auth.setSession(token)
     const { data: questionsData, error } = await supabase
         .from('questions')
         .insert({ id: Math.ceil(Date.now() + Math.random()), difficulty: question.difficulty })

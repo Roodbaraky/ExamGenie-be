@@ -32,7 +32,6 @@ app.route('/questions')
     .post(getQuestions)
 
 app.route('/upload')
-    // .post(addQuestions )
     .post(checkRole('admin'), addQuestions )
 
 
