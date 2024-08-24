@@ -1,6 +1,7 @@
 import dotenv from "dotenv";
 import { supabase } from "../database/supabaseClient";
 import { Difficulties, DifficultyLevel, FetchQuestionsProps, FetchTagsFromSowProps, NewQuestion, Question } from "../types/Question";
+import { convertFromBase64ToImage } from "../utils/utils";
 dotenv.config()
 
 
@@ -145,28 +146,25 @@ export const fetchQuestions = async ({
             async (questionId: number) => {
                 return await getImgURLFromId(questionId, 'questions')
             }))
-        //do the same for 'answers' bucket
-        //spread arrays into each other
-        //half the returned array at client --> generate questions pdf, wait, then answers pdf
+
         const answerImgUrls = await Promise.allSettled(idsToFetchImagesOf.map(
             async (questionId: number) => {
                 return await getImgURLFromId(questionId, 'answers')
             }))
 
-        const combinedQuestionsObjectArr = data.map((questionObject: Question, index: number) => {
-            questionObject.URL = questionImgUrls[index].status === 'fulfilled'
+        const combinedQuestionsObjectArr = data.map((questionObject: Question, index: number) => ({
+            ...questionObject,
+            URL: questionImgUrls[index].status === 'fulfilled'
                 ? questionImgUrls[index].value
                 : null
-            return questionObject
-        })
-        const newData = structuredClone(data)
-        //do something better than this, shouldn't mutate data at all really
-        const combinedAnswersObjectArr = newData.map((answerObject: Question, index: number) => {
-            answerObject.URL = answerImgUrls[index].status === 'fulfilled'
+        }))
+        
+        const combinedAnswersObjectArr = data.map((answerObject: Question, index: number) => ({
+            ...answerObject,
+            URL: answerImgUrls[index].status === 'fulfilled'
                 ? answerImgUrls[index].value
                 : null
-            return answerObject
-        })
+        }))
 
         return [combinedQuestionsObjectArr, combinedAnswersObjectArr]
     } catch (error) {
@@ -174,11 +172,7 @@ export const fetchQuestions = async ({
     }
 };
 
-const convertFromBase64ToImage = (base64ImageString: string) => {
-    const cleanedBase64String = base64ImageString.replace(/^data:image\/\w+;base64,/, '')
-    const imageBuffer = Buffer.from(cleanedBase64String, 'base64')
-    return imageBuffer
-}
+
 const uploadPNGsToBucket = async (itemIds: number[], imageArr: Buffer[], bucketName: string) => {
     for (let i = 0; i < imageArr.length; i++) {
         const { data, error } = await supabase.storage
@@ -293,7 +287,6 @@ export const postQuestions = async (questions: NewQuestion[]) => {
         await uploadPNGsToBucket(questionIds, reconstructedImages, 'questions')
         const imagesUploaded = await checkUploads(questionIds, 'questions')
         if (!imagesUploaded) deleteEntriesForFailedUploads(questionIds, 'questions')
-        //return questionIds via API (useful for testing purposes at the very least)
         return questionIds
     } catch (error) {
         return Promise.reject(error)
