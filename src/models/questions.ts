@@ -1,9 +1,9 @@
 import dotenv from "dotenv";
 import { supabase } from "../database/supabaseClient";
 import { Difficulties, DifficultyLevel, FetchQuestionsProps, NewQuestion, Question } from "../types/Question";
+import { checkBucketUploads, getImgURLFromId, uploadPNGsToBucket } from "../utils/bucketFuncs";
 import { convertFromBase64ToImage } from "../utils/utils";
 import { areTagsValid } from "./tags";
-import { checkBucketUploads, getImgURLFromId, uploadPNGsToBucket } from "../utils/bucketFuncs";
 dotenv.config()
 
 
@@ -25,14 +25,7 @@ const defaultDifficulties = {
     extended: true
 }
 
-
-export const fetchQuestions = async ({
-    tagsToUse = [],
-    difficulties = defaultDifficulties,
-    limit = 20,
-}:
-    FetchQuestionsProps
-): Promise<Question[]> => {
+export const validateFetchQuestionsInputs = (tagsToUse: string[], difficulties: Difficulties, limit: number | string) => {
     if (tagsToUse.length && !areTagsValid(tagsToUse)) {
         return Promise.reject(new Error('Invalid tags'));
     }
@@ -44,13 +37,27 @@ export const fetchQuestions = async ({
     if (isNaN(+limit) || +limit < 0) {
         return Promise.reject(new Error('Invalid limit'))
     }
+}
+// ^^ this might cause issues, not sure if returning promise.reject works??
 
+export const convertDifficultiesObjectIntoActiveDifficulties = (difficulties: Difficulties) => {
+    return Object.keys(difficulties)
+        ?.filter((key) => difficulties[key as DifficultyLevel])
+        ?.map((key) => key as DifficultyLevel);
+}
+
+export const fetchQuestions = async ({
+    tagsToUse = [],
+    difficulties = defaultDifficulties,
+    limit = 20,
+}:
+    FetchQuestionsProps
+): Promise<Question[]> => {
+    await validateFetchQuestionsInputs(tagsToUse, difficulties, limit)
+    // ^^ this might cause issues, not sure if returning promise.reject works??
     try {
-        const activeDifficulties: DifficultyLevel[] = Object.keys(difficulties)
-            .filter((key) => difficulties[key as DifficultyLevel])
-            .map((key) => key as DifficultyLevel);
 
-
+        const activeDifficulties: DifficultyLevel[] = convertDifficultiesObjectIntoActiveDifficulties(difficulties)
 
         const { data, error } = await supabase
             .rpc('fetch_questions', {
@@ -96,7 +103,7 @@ export const fetchQuestions = async ({
 };
 
 
-const deleteEntriesForFailedUploads = async (itemIds: number[], table: string) => {
+export const deleteEntriesForFailedUploads = async (itemIds: number[], table: string) => {
     const { data, error } = await supabase.from(table)
         .delete()
         .in('id', itemIds)
@@ -109,6 +116,20 @@ const deleteEntriesForFailedUploads = async (itemIds: number[], table: string) =
     }
 }
 
+export const fetchTagIdsFromQuestion = async (question: Question) => {
+    const tagIds: number[] = []
+    for (const tag of question.tags) {
+        const { data: tagsData, error } = await supabase
+            .from('tags')
+            .select('id')
+            .eq('tag', tag)
+
+        if (error) throw error
+        if (tagsData) tagIds.push(tagsData[0].id)
+
+    }
+    return tagIds
+}
 
 export const postQuestions = async (questions: NewQuestion[]) => {
     try {
@@ -123,22 +144,11 @@ export const postQuestions = async (questions: NewQuestion[]) => {
             //do better RNG          ^^
             if (error) throw error
             if (questionsData) questionIds.push(questionsData[0].id)
-
-            const tagIds: number[] = []
-            for (const tag of question.tags) {
-                const { data: tagsData, error } = await supabase
-                    .from('tags')
-                    .select('id')
-                    .eq('tag', tag)
-
-                if (error) throw error
-                if (tagsData) tagIds.push(tagsData[0].id)
-            }
+            const tagIds = await fetchTagIdsFromQuestion(question)
             tagIdsArr.push(tagIds)
             imgsArr.push(question.image ? question.image : '')
         }
         const questionTagsInsertArr = tagIdsArr.map((tags: number[], index) => {
-
             return tags.map((tagId: number) => {
                 return {
                     question_id: questionIds[index],
