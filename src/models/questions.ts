@@ -4,6 +4,8 @@ import { Difficulties, DifficultyLevel, FetchQuestionsProps, NewQuestion, Questi
 import { checkBucketUploads, getImgURLFromId, uploadPNGsToBucket } from "../utils/bucketFuncs";
 import { convertFromBase64ToImage } from "../utils/utils";
 import { areTagsValid } from "./tags";
+import { QuestionTag } from "../database/data/questionTags";
+import { Token } from "../types/Auth";
 dotenv.config()
 
 
@@ -27,15 +29,15 @@ const defaultDifficulties = {
 
 export const validateFetchQuestionsInputs = (tagsToUse: string[], difficulties: Difficulties, limit: number | string) => {
     if (tagsToUse.length && !areTagsValid(tagsToUse)) {
-        return Promise.reject(new Error('Invalid tags'));
+        return Promise.reject(Error('Invalid tags'));
     }
 
     if (Object.keys(difficulties).length && !areDifficultiesValid(difficulties)) {
-        return Promise.reject(new Error('Invalid difficulties'));
+        return Promise.reject(Error('Invalid difficulties'));
     }
 
     if (isNaN(+limit) || +limit < 0) {
-        return Promise.reject(new Error('Invalid limit'))
+        return Promise.reject(Error('Invalid limit'))
     }
 }
 // ^^ this might cause issues, not sure if returning promise.reject works??
@@ -72,6 +74,7 @@ export const fetchQuestions = async ({
         }
 
         const idsToFetchImagesOf = data.map((questionObject: Question) => questionObject.id)
+
 
         const [questionImgUrls, answerImgUrls] = await Promise.all([
             Promise.allSettled(idsToFetchImagesOf.map(
@@ -111,7 +114,7 @@ export const deleteEntriesForFailedUploads = async (itemIds: number[], table: st
         .in('id', itemIds)
         .select()
 
-    if (error) throw error
+    if (error) return Promise.reject(error)
     if (data) {
         console.log('Successfully deleted:', data)
         return true
@@ -125,26 +128,30 @@ export const fetchTagIdsFromQuestion = async (question: Question) => {
             .from('tags')
             .select('id')
             .eq('tag', tag)
-        if (error) throw error
+        if (error) return Promise.reject(error)
         if (tagsData) tagIds.push(tagsData[0].id)
     }
     return tagIds
 }
-interface Token {
-    access_token: string
-    refresh_token: string
-}
-export const insertQuestions = async (question: Question, token?: Token) => {
 
+export const insertQuestions = async (question: Question, token?: Token) => {
     if (token) supabase.auth.setSession(token)
     const { data: questionsData, error } = await supabase
         .from('questions')
         .insert({ id: Math.ceil(Date.now() + Math.random()), difficulty: question.difficulty })
         .select('id')
     //do better RNG          ^^
-    if (error) throw error
-    //maybe this should be promise.reject, not throw?
+    if (error) return Promise.reject(error)
     if (questionsData) return questionsData[0].id
+}
+
+export const insertQuestionTags = async (questionTag: QuestionTag) => {
+    const { data: questionTagsData, error } = await supabase
+        .from('question_tags')
+        .insert(questionTag)
+        .select('*')
+    if (error) return Promise.reject(error)
+    if (!questionTagsData.length) return Promise.reject(Error('Failed to insert questionTags'))
 }
 
 export const postQuestions = async (questions: NewQuestion[], token: Token) => {
@@ -169,20 +176,10 @@ export const postQuestions = async (questions: NewQuestion[], token: Token) => {
         }).flat()
 
         for (const questionTag of questionTagsInsertArr) {
-
-            const { data: questionTagsData, error } = await supabase
-                .from('question_tags')
-                .insert(questionTag)
-                .select('*')
-
-
-            if (error) throw error
-            if (!questionTagsData.length) throw error
-
+            await insertQuestionTags(questionTag)
         }
 
         const reconstructedImages = imgsArr.map((imgData) => convertFromBase64ToImage(imgData))
-
         await uploadPNGsToBucket(questionIds, reconstructedImages, 'questions')
         const imagesUploaded = await checkBucketUploads(questionIds, 'questions')
         if (!imagesUploaded) deleteEntriesForFailedUploads(questionIds, 'questions')
