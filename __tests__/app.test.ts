@@ -1,10 +1,9 @@
 import express from 'express';
 import request from 'supertest';
-import { afterAll, describe, expect, expectTypeOf, it } from 'vitest';
+import { describe, expect, it } from '@jest/globals';
 import { app } from '../src';
-import { checkQuestionsMatchTags, validateQuestionObject } from './questions.test';
 import { Question } from '../src/types/Question';
-import { seedDatabase } from '../src/database/seed';
+import { checkQuestionsMatchTags, validateQuestionObject } from './questions.test';
 
 app.use(express.json());
 

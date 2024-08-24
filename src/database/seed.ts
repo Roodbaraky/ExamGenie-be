@@ -56,12 +56,12 @@ async function uploadImage(filePath: string, bucketName: string, destinationPath
         const fileName = path.basename(filePath);
         const fileContent = fs.readFileSync(filePath);
 
-        const { data, error } = await supabaseSeedClient.storage
+        const { error } = await supabaseSeedClient.storage
             .from(bucketName)
             .upload(destinationPath + fileName, fileContent, {
                 cacheControl: '3600',
                 upsert: true,
-                contentType:'image/png',
+                contentType: 'image/png',
             });
 
         if (error) {

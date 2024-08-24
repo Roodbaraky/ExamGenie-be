@@ -1,5 +1,9 @@
-import { describe, expect, it } from 'vitest';
-import { fetchTagsFromSow, FetchTagsFromSowProps } from '../src/models/questions';
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { describe, expect, it } from '@jest/globals';
+import { fetchTagsFromSow } from '../src/models/tags';
+import { FetchTagsFromSowProps } from '../src/types/Question';
+
+
 
 //add unit tests for areFetchArgsValid && checkIfClassExists
 
@@ -25,7 +29,7 @@ describe('fetchTags', () => {
 
     it('should error if queried with an invalid currentWeek', async () => {
         try {
-            const exampleArgs: FetchTagsFromSowProps = { className: '9xPb', currentWeek: 'invalid' as any, recallPeriod: 1 }
+            const exampleArgs: FetchTagsFromSowProps = { className: '9xPb', currentWeek: 'invalid' as never, recallPeriod: 1 }
             const tags = await fetchTagsFromSow(exampleArgs)
             expect(tags).toBeUndefined()
         } catch (error) {
@@ -36,7 +40,7 @@ describe('fetchTags', () => {
 
     it('should error if queried with an invalid recallPeriod', async () => {
         try {
-            const exampleArgs: FetchTagsFromSowProps = { className: '9xPb', currentWeek: 2, recallPeriod: 'invalid' as any }
+            const exampleArgs: FetchTagsFromSowProps = { className: '9xPb', currentWeek: 2, recallPeriod: 'invalid' as never }
             const tags = await fetchTagsFromSow(exampleArgs)
             expect(tags).toBeUndefined()
         } catch (error) {
@@ -60,7 +64,7 @@ describe('fetchTags', () => {
 
     it('should error if queried with a valid, but non-existent className', async () => {
         try {
-            const exampleArgs: FetchTagsFromSowProps = { className: 'NotARealClass' as any, currentWeek: 2, recallPeriod: 1 }
+            const exampleArgs: FetchTagsFromSowProps = { className: 'NotARealClass' as never, currentWeek: 2, recallPeriod: 1 }
             const tags = await fetchTagsFromSow(exampleArgs)
             expect(tags).toBeUndefined()
         } catch (error) {

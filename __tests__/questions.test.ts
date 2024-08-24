@@ -1,9 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { describe, expect, it } from 'vitest';
-import { areDifficultiesValid, areTagsValid, Difficulties, fetchQuestions, postQuestions } from '../src/models/questions';
-import { Question } from '../src/types/Question';
+import { describe, expect, it } from '@jest/globals';
+import { areDifficultiesValid, fetchQuestions, postQuestions } from '../src/models/questions';
+import { Difficulties, Question } from '../src/types/Question';
 import { testImage } from './testImage';
 import { supabaseSeedClient } from '../src/database/supabaseClient';
+import { areTagsValid } from '../src/models/tags';
 
 
 describe('areTagsValid', () => {
@@ -77,7 +80,7 @@ describe('areDifficultiesValid', () => {
     });
 });
 
-export const validateQuestionObject = (question: Question, difficulty: string | null = null, tag: string | null = null) => {
+export const validateQuestionObject = (question: Question, difficulty: string | null = null, _tag: string | null = null) => {
     expect(question).toMatchObject({
         id: expect.any(Number),
         difficulty: difficulty ? difficulty : expect.any(String),
@@ -190,7 +193,7 @@ describe('postQuestions', () => {
         const actualResult = await postQuestions(exampleQuestionsArr)
         expect(Array.isArray(actualResult)).toBe(true)
         actualResult.forEach((result: number) => expect(typeof result).toBe('number'))
-    },6000);
+    }, 6000);
 
     it('should upload images corresponding to array of question objects', async () => {
         const exampleQuestionsArr = [
