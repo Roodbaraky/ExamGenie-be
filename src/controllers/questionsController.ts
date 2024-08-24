@@ -1,4 +1,4 @@
-import { Request, Response } from "express"
+import { NextFunction, Request, Response } from "express"
 import { fetchQuestions, postQuestions } from "../models/questions"
 import { PostgrestError } from "@supabase/supabase-js"
 import { fetchTagsFromSow } from "../models/tags"
@@ -51,12 +51,12 @@ export const getQuestions = async (req: Request, res: Response) => {
 
 }
 
-export const addQuestions = async (req: Request, res: Response) => {
+export const addQuestions = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const questions = req.body
         const stringifiedToken = req.headers['authorization']?.split(' ')[1]
         const token = stringifiedToken ? JSON.parse(stringifiedToken) : null
-        const questionIds =token? await postQuestions(questions, token):[]
+        const questionIds = token ? await postQuestions(questions, token) : []
 
         res
             .status(200)
@@ -64,6 +64,7 @@ export const addQuestions = async (req: Request, res: Response) => {
 
     } catch (error) {
         console.error(error)
+        // next(error)
         res
             .status(500)
             .send(error)

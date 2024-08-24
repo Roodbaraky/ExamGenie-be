@@ -1,4 +1,3 @@
-import dotenv from "dotenv";
 import { supabase } from "../database/supabaseClient";
 import { Difficulties, DifficultyLevel, FetchQuestionsProps, NewQuestion, Question } from "../types/Question";
 import { checkBucketUploads, getImgURLFromId, uploadPNGsToBucket } from "../utils/bucketFuncs";
@@ -6,7 +5,7 @@ import { convertFromBase64ToImage } from "../utils/utils";
 import { areTagsValid } from "./tags";
 import { QuestionTag } from "../database/data/questionTags";
 import { Token } from "../types/Auth";
-dotenv.config()
+
 
 
 export const areDifficultiesValid = (difficulties: Difficulties) => {
@@ -40,7 +39,6 @@ export const validateFetchQuestionsInputs = (tagsToUse: string[], difficulties: 
         return Promise.reject(Error('Invalid limit'))
     }
 }
-// ^^ this might cause issues, not sure if returning promise.reject works??
 
 export const convertDifficultiesObjectIntoActiveDifficulties = (difficulties: Difficulties) => {
     return Object.keys(difficulties)
@@ -107,7 +105,6 @@ export const fetchQuestions = async ({
     }
 };
 
-
 export const deleteEntriesForFailedUploads = async (itemIds: number[], table: string) => {
     const { data, error } = await supabase.from(table)
         .delete()
@@ -154,12 +151,19 @@ export const insertQuestionTags = async (questionTag: QuestionTag) => {
     if (!questionTagsData.length) return Promise.reject(Error('Failed to insert questionTags'))
 }
 
+export const checkQuestionObjectIsValid = async (question: NewQuestion) => {
+    if (question?.tags?.length === 0) return Promise.reject(Error('Invalid tags on posted question/s'))
+    if (!question?.difficulty) return Promise.reject(Error('Invalid difficulty on posted question/s'))
+    if (!question?.image || !question?.image?.includes('data:image/png;base64')) return Promise.reject(Error('Invalid image on posted question/s'))
+}
+
 export const postQuestions = async (questions: NewQuestion[], token: Token) => {
     try {
         const questionIds: number[] = []
         const tagIdsArr: number[][] = []
         const imgsArr: string[] = []
         for (const question of questions) {
+            await checkQuestionObjectIsValid(question)
             const questionId = await insertQuestions(question, token)
             questionIds.push(questionId)
             const tagIds = await fetchTagIdsFromQuestion(question)
