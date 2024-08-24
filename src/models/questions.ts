@@ -123,12 +123,21 @@ export const fetchTagIdsFromQuestion = async (question: Question) => {
             .from('tags')
             .select('id')
             .eq('tag', tag)
-
         if (error) throw error
         if (tagsData) tagIds.push(tagsData[0].id)
-
     }
     return tagIds
+}
+
+export const insertQuestions = async (question: Question) => {
+    const { data: questionsData, error } = await supabase
+        .from('questions')
+        .insert({ id: Math.ceil(Date.now() + Math.random()), difficulty: question.difficulty })
+        .select('id')
+    //do better RNG          ^^
+    if (error) throw error
+    //maybe this should be promise.reject, not throw?
+    if (questionsData) return questionsData[0].id
 }
 
 export const postQuestions = async (questions: NewQuestion[]) => {
@@ -137,13 +146,8 @@ export const postQuestions = async (questions: NewQuestion[]) => {
         const tagIdsArr: number[][] = []
         const imgsArr: string[] = []
         for (const question of questions) {
-            const { data: questionsData, error } = await supabase
-                .from('questions')
-                .insert({ id: Math.ceil(Date.now() + Math.random()), difficulty: question.difficulty })
-                .select('id')
-            //do better RNG          ^^
-            if (error) throw error
-            if (questionsData) questionIds.push(questionsData[0].id)
+            const questionId = await insertQuestions(question)
+            questionIds.push(questionId)
             const tagIds = await fetchTagIdsFromQuestion(question)
             tagIdsArr.push(tagIds)
             imgsArr.push(question.image ? question.image : '')
