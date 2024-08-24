@@ -1,5 +1,6 @@
 import { supabase } from "../database/supabaseClient";
-import { checkIfClassExists } from "./questions";
+import { checkIfClassExists } from "./classes";
+
 
 
 export const isClassNameValid = (className: unknown) => {

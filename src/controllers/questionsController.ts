@@ -1,6 +1,7 @@
 import { Request, Response } from "express"
-import { fetchQuestions, fetchTagsFromSow, postQuestions } from "../models/questions"
+import { fetchQuestions, postQuestions } from "../models/questions"
 import { PostgrestError } from "@supabase/supabase-js"
+import { fetchTagsFromSow } from "../models/tags"
 
 
 export const getQuestions = async (req: Request, res: Response) => {
