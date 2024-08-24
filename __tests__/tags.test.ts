@@ -1,17 +1,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from '@jest/globals';
-import { fetchTagsFromSow } from '../src/models/tags';
+import { areTagsValid, fetchTagsFromSow } from '../src/models/tags';
 import { FetchTagsFromSowProps } from '../src/types/Question';
 
 
 
-//add unit tests for areFetchArgsValid && checkIfClassExists
+describe('areTagsValid', () => {
+    it('should return true if passed an array of valid tags', () => {
+        const validTags = ['tag1', 'tag2', 'tag3'];
+        expect(areTagsValid(validTags)).toBe(true);
+    })
+    it('should return false for an array containing non-string elements', () => {
+        const invalidTags1 = [123, 'tag1', true];
+        expect(areTagsValid(invalidTags1 as any)).toBe(false);
 
-describe('fetchTags', () => {
+        const invalidTags2 = ['tag1', 'tag2', null];
+        expect(areTagsValid(invalidTags2 as any)).toBe(false);
+    });
+
+    it('should return false for an array containing strings that are numbers', () => {
+        const invalidTags = ['123', '456', '789'];
+        expect(areTagsValid(invalidTags)).toBe(false);
+    });
+
+    it('should return true for an empty array', () => {
+        const emptyArray: string[] = [];
+        expect(areTagsValid(emptyArray)).toBe(true);
+    });
+
+    it('should return false for non-array input', () => {
+        const nonArrayInputs = [null, undefined, 123, 'string', {}];
+        nonArrayInputs.forEach(input => {
+            expect(areTagsValid(input as any)).toBe(false);
+        });
+    });
+})
+
+
+describe('fetchTagsFromSow', () => {
     it('should fetch an array of tags when passed className, currentWeek, and recallPeriod', async () => {
-        const exampleArgs: FetchTagsFromSowProps = { className: '9xPb', currentWeek: 2, recallPeriod: 1 }
+        const exampleArgs: FetchTagsFromSowProps = { className: '9xPb', currentWeek: 25, recallPeriod: 1 }
         const tags = await fetchTagsFromSow(exampleArgs)
-        expect(tags.length).toBe(4)
+        expect(tags?.length).toBe(3)
         expect(Array.isArray(tags)).toBe(true)
         tags.forEach((tag: string) => expect(typeof tag).toBe('string'))
     });
