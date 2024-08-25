@@ -1,10 +1,9 @@
 import { NextFunction, Request, Response } from "express"
 import { fetchQuestions, postQuestions } from "../models/questions"
-import { PostgrestError } from "@supabase/supabase-js"
 import { fetchTagsFromSow } from "../models/tags"
 
 
-export const getQuestions = async (req: Request, res: Response) => {
+export const getQuestions = async (req: Request, res: Response, next: NextFunction) => {
     try {
         if (Object.keys(req.body).length === 0) {
             const questions = await fetchQuestions({})
@@ -21,9 +20,7 @@ export const getQuestions = async (req: Request, res: Response) => {
 
         const questions = await fetchQuestions({ tagsToUse, difficulties, limit })
         if (!questions || questions.length === 0) {
-            res
-                .status(404)
-                .send(Error('Questions corresponding to filters not found'))
+            next(Error('Questions corresponding to filters not found'))
         }
         else if (questions) {
             res
@@ -31,23 +28,9 @@ export const getQuestions = async (req: Request, res: Response) => {
                 .send(questions)
         }
     } catch (error) {
-        console.log(error)
-        const err = error as Error
-        if (err && err.message === 'Invalid tags' || err && err.message === 'Invalid difficulties') {
-            res.status(400).send(err.message)
-        }
-        else if ((error as PostgrestError).details === 'The result contains 0 rows') {
-            res
-                .status(404)
-                .send('Results not found')
-        }
-        else {
-            console.error(err)
-            res
-                .status(500)
-                .send('Internal Server Error')
-        }
+        next(error)
     }
+
 
 }
 
@@ -63,11 +46,7 @@ export const addQuestions = async (req: Request, res: Response, next: NextFuncti
             .send(questionIds)
 
     } catch (error) {
-        console.error(error)
-        // next(error)
-        res
-            .status(500)
-            .send(error)
-    }
+        next(error)
 
+    }
 }

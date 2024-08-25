@@ -73,7 +73,6 @@ export const fetchQuestions = async ({
 
         const idsToFetchImagesOf = data.map((questionObject: Question) => questionObject.id)
 
-
         const [questionImgUrls, answerImgUrls] = await Promise.all([
             Promise.allSettled(idsToFetchImagesOf.map(
                 async (questionId: number) => {
@@ -98,7 +97,6 @@ export const fetchQuestions = async ({
                 ? answerImgUrls[index].value
                 : null
         }))
-
         return [combinedQuestionsObjectArr, combinedAnswersObjectArr]
     } catch (error) {
         return Promise.reject(error);

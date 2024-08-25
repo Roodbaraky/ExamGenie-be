@@ -7,6 +7,7 @@ import { getTags } from './controllers/tagsController';
 import { getWeeksFromClassName } from './controllers/weeksController';
 import { authenticateToken } from './middleware/token';
 import { checkRole } from './middleware/user';
+import { errorHandler } from './middleware/errors';
 
 dotenv.config();
 export const app = express();
@@ -32,28 +33,29 @@ app.route('/questions')
     .post(getQuestions)
 
 app.route('/upload')
-    .post(checkRole('admin'), addQuestions )
+    .post(checkRole('admin'), addQuestions)
 
 
 app.route('/classes')
     .get(getClasses)
-    // .post(checkRole('admin'), addClass )
+// .post(checkRole('admin'), addClass )
 
 
 app.route('/weeks')
     .get(getWeeksFromClassName)
-    // .post(checkRole('admin'), addWeeks )
+// .post(checkRole('admin'), addWeeks )
 
 
 app.route('/tags')
     .get(getTags)
-    // .post(checkRole('admin'), addTags )
+// .post(checkRole('admin'), addTags )
 
 app.route('sow')
-    // .post(checkRole('admin'), addSow)
-    // .patch(checkRole('moderator'), updateSow )
+// .post(checkRole('admin'), addSow)
+// .patch(checkRole('moderator'), updateSow )
 
 
+app.use(errorHandler)
 
 const port = process.env.PORT || 3000;
 

@@ -1,7 +1,7 @@
-import { Request, Response } from "express"
+import { NextFunction, Request, Response } from "express"
 import { fetchTags } from "../models/tags"
 
-export const getTags = async (req: Request, res: Response) => {
+export const getTags = async (req: Request, res: Response, next: NextFunction) => {
     try {
         const tags = await fetchTags()
         if (tags.length) {
@@ -10,11 +10,9 @@ export const getTags = async (req: Request, res: Response) => {
                 .send(tags)
         }
         else {
-            res
-                .status(404)
-                .send('No tags found')
+            next(Error('No tags found'))
         }
     } catch (error) {
-        console.error(error)
+        next(error)
     }
 }
