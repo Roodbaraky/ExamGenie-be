@@ -30,14 +30,14 @@ app.route('/')
     });
 
 app.route('/questions')
-    .post(checkRole('moderator'),getQuestions)
+    .post(checkRole('moderator'), getQuestions)
 
 app.route('/upload')
     .post(checkRole('admin'), addQuestions)
 
 
 app.route('/classes')
-    .get(getClasses)
+    .get(checkRole('moderator'), getClasses)
 // .post(checkRole('admin'), addClass )
 
 
