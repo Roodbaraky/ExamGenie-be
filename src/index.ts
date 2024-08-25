@@ -30,7 +30,7 @@ app.route('/')
     });
 
 app.route('/questions')
-    .post(getQuestions)
+    .post(checkRole('moderator'),getQuestions)
 
 app.route('/upload')
     .post(checkRole('admin'), addQuestions)
@@ -50,7 +50,7 @@ app.route('/tags')
     .get(getTags)
 // .post(checkRole('admin'), addTags )
 
-app.route('sow')
+app.route('/sow')
 // .post(checkRole('admin'), addSow)
 // .patch(checkRole('moderator'), updateSow )
 
