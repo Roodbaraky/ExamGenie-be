@@ -12,14 +12,18 @@ export const fetchClasses = async (token?: Token) => {
             .from('classes')
             .select('*')
         if (error) return Promise.reject(error)
-        if (data) return data
+        if (data) {
+            console.log(data)
+            return data}
     }
     else {
         const { data, error } = await supabase.rpc('get_user_classes', {
             userid: userId
         })
         if (error) return Promise.reject(error)
-        if (data) return data
+        if (data) {
+            console.log(data)
+            return data}
     }
 }
 
