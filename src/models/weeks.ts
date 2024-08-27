@@ -21,3 +21,5 @@ export const fetchWeeks = async (className: string) => {
         : Promise.reject('Weeks data not found')
    
 }
+
+

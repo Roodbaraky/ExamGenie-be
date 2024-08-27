@@ -3,11 +3,12 @@ import dotenv from 'dotenv';
 import express, { Request, Response } from 'express';
 import { getClasses } from './controllers/classesController';
 import { addQuestions, getQuestions } from './controllers/questionsController';
+import { changeSow } from './controllers/sowController';
 import { getTags } from './controllers/tagsController';
 import { getWeeksFromClassName } from './controllers/weeksController';
+import { errorHandler } from './middleware/errors';
 import { authenticateToken } from './middleware/token';
 import { checkRole } from './middleware/user';
-import { errorHandler } from './middleware/errors';
 
 dotenv.config();
 export const app = express();
@@ -28,6 +29,7 @@ app.route('/')
     .get((req: Request, res: Response) => {
         res.status(200).send('Hi, API is working');
     });
+
 
 app.route('/questions')
     .post(checkRole('moderator'), getQuestions)
@@ -51,8 +53,8 @@ app.route('/tags')
 // .post(checkRole('admin'), addTags )
 
 app.route('/sow')
-// .post(checkRole('admin'), addSow)
-// .patch(checkRole('moderator'), updateSow )
+.post(checkRole('moderator'), changeSow)
+
 
 
 app.use(errorHandler)
