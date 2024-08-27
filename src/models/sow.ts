@@ -27,7 +27,9 @@ export interface Week {
     id: number;
     week_number: number;
     tags: string[];
+    week_id?: number;
 }
+
 
 interface AddOrUpdateSowProps {
     className: string,
@@ -36,11 +38,9 @@ interface AddOrUpdateSowProps {
 }
 export const addOrUpdateSow = async (receivedSowData: AddOrUpdateSowProps, token: Token) => {
 
-    // 1. Retrieve current sow_id for the class
-    // const currentSowId = await getSowIdByClassName(className);
     if (token) supabase.auth.setSession(token)
-
     const { className, weeks } = receivedSowData
+
     const { data: currentSowData, error: currentSowError } = await supabase
         .rpc('get_sow_id_by_class_name', { classname: className });
     if (currentSowError) return Promise.reject(currentSowError)
@@ -59,7 +59,7 @@ export const addOrUpdateSow = async (receivedSowData: AddOrUpdateSowProps, token
             return Promise.reject(new Error("Invalid className format; unable to extract year."));
         }
 
-
+        // change this to be an rpc with checking for id exists, instead of genning id from datenow
         const { data, error } = await supabase
             .from('sow')
             .insert({ id: Math.ceil(Date.now() + Math.random()), year: yearGroup })
@@ -71,7 +71,6 @@ export const addOrUpdateSow = async (receivedSowData: AddOrUpdateSowProps, token
 
     console.log(`Inserting new weeks data @ sow_id: ${newSowId}`)
 
-    //do a ternary to check if newSowId is null --> decide which sow_id to use for following operations
 
     //insert 39 weeks into weeks and return their ids
     const weekNumbers = Array.from({ length: 39 }, (_, i) => i + 1);
@@ -81,14 +80,8 @@ export const addOrUpdateSow = async (receivedSowData: AddOrUpdateSowProps, token
     if (insertingWeeksError) return Promise.reject(insertingWeeksError)
     console.log(insertedWeekIds, '<----')
 
-    // getting:
-    // [2024-08-27T00:01:10.766Z] 500 - TypeError: fetch failed: TypeError: fetch failed
-    //     at node:internal/deps/undici/undici:13178:13
-    //     at processTicksAndRejections (node:internal/process/task_queues:95:5)
-    // I think just because I have lots of promise.alls, so need to add breaks to check for errors and re-roll changes if found.
+    //Manipulate and insert tags into weeks_tags
 
-    //     // 2.3. Manipulate and insert tags into weeks_tags
-    //     await insertWeeksTags(weekIds, tags);
     const tagIds = await Promise.all(weeks?.map(async (week) => {
         return Promise.all(week?.tags?.map(async (tag) => {
             const { data, error } = await supabase
@@ -125,26 +118,23 @@ export const addOrUpdateSow = async (receivedSowData: AddOrUpdateSowProps, token
     console.log(weeks_tags)
 
 
-    //     // 2.4. Associate sow_id and week_ids in sow_weeks
-    //     await insertSowWeeks(newSowId, weekIds);
-    const sow_weeks = await Promise.all(insertedWeekIds.map(async (week: { week_id: number }) => {
-        const weekId = week.week_id
-        const sowId = newSowId ? newSowId : currentSowId
-        const { data, error } = await supabase
-            .from('sow_weeks')
-            .insert({ sow_id: sowId, week_id: weekId })
-            .select()
-
-        if (error) return Promise.reject(error)
-
-        return data
-    }))
-
-    console.log(sow_weeks)
-
-    //     // 2.5. Update class_sow with the new sow_id for the class
-    //     await updateClassSow(newSowId, className);
     if (newSowId) {
+        const sow_weeks = await Promise.all(insertedWeekIds.map(async (week: { week_id: number }) => {
+            const weekId = week.week_id
+            const { data, error } = await supabase
+                .from('sow_weeks')
+                .insert({ sow_id: newSowId, week_id: weekId })
+                .select()
+
+            if (error) return Promise.reject(error)
+
+            return data
+        }))
+
+        console.log(sow_weeks, '<--- new sow_weeks')
+
+        //Update class_sow with the new sow_id for the class
+
         const { data: classIdData, error: classIdError } = await supabase
             .from('classes')
             .select('id')
@@ -169,9 +159,46 @@ export const addOrUpdateSow = async (receivedSowData: AddOrUpdateSowProps, token
             .select('sow_id')
         if (updatedClass_sowError) return Promise.reject(updatedClass_sowError)
         console.log(updatedClass_sow)
-        return updatedClass_sow
+        return receivedSowData
     }
-    console.log('same sow_id, no change!')
+
+    if (!newSowId) {
+        const sow_weeks = await Promise.all(insertedWeekIds.map(async (week: Week, index: number) => {
+
+            const weekId = week.week_id
+            const oldWeekId = weeks[index].week_id
+
+            const { data, error } = await supabase
+                .rpc('update_sow_week', {
+                    current_sow_id: currentSowId,
+                    old_week_id: oldWeekId,
+                    new_week_id: weekId
+                })
+
+            if (error) return Promise.reject(error);
+            return data
+        }))
+        console.log(currentSowId)
+        if (currentSowId > 7) {
+            //delete old entries from weeks_tags
+            const deletedWeeksTags = await Promise.all(weeks.map(async (week: Week) => {
+                const { data, error } = await supabase
+                    .from('weeks_tags')
+                    .delete()
+                    .eq('week_id', week.week_id)
+                    .select()
+
+                if (error) return Promise.reject(error)
+                return data
+            })
+
+            )
+            console.log('deletedWeeksTags', deletedWeeksTags)
+        }
+        console.log(sow_weeks)
+        console.log('same sow_id, no change!')
+        return receivedSowData
+    }
 }
 
 

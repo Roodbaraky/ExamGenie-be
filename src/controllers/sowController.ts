@@ -8,6 +8,7 @@ export const changeSow = async (req: Request, res: Response, next: NextFunction)
         const stringifiedToken = req.headers['authorization']?.split(' ')[1]
         const token = stringifiedToken ? JSON.parse(stringifiedToken) : null
         const updatedSow = await addOrUpdateSow(data, token)
+        console.log(updatedSow)
         res.status(200)
             .send(updatedSow)
     } catch (error) {
