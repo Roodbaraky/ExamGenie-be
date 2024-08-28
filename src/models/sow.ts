@@ -15,17 +15,57 @@ interface AddOrUpdateSowProps {
     tags: string[],
     weeks: Week[]
 }
-
-export const updateSow = async () => {
-
-
+interface UpdateSowProps {
+    weekIds: number[],
+    weeks: Week[],
+    sowId: number,
+    className: string
 }
 
-export const addSow = async() =>{
-
+export const updateSow = async ({ weekIds, weeks, sowId }: UpdateSowProps) => {
+    const newSowWeeks = await updateSowWeeks(weekIds, weeks, sowId)
+    console.log(newSowWeeks, '<--- newSowWeeks')
+    const deletedWeeksTags = await deleteOldWeeksTags(weeks)
+    console.log(deletedWeeksTags, '<--- deletedWeeksTags')
+    console.log('same sow_id, no change!')
+    return 
 }
 
-export const createNewSow = async (yearGroup: number) => {
+export const updateSowWeeks = async (weekIds: number[], weeks: Week[], sowId: number) => {
+    return await Promise.all(weekIds.map(async (weekId: number, index: number) => {
+        const oldWeekId = weeks[index].week_id
+        const { data, error } = await supabase
+            .rpc('update_sow_week', {
+                current_sow_id: sowId,
+                old_week_id: oldWeekId,
+                new_week_id: weekId
+            })
+
+        if (error) return Promise.reject(error);
+        return data
+    }))
+}
+interface AddSowProps {
+    yearGroup: number,
+    weekIds: number[],
+    className: string,
+    oldSowId: number,
+    weeks: Week[]
+}
+export const addSow = async ({ yearGroup, weekIds, className, oldSowId }: AddSowProps) => {
+    const newSowId = await insertNewSow(yearGroup)
+    const sowWeeks = await insertSoWWeeks(weekIds, newSowId)
+    console.log(sowWeeks, '<--- new sow_weeks')
+    const classId = await getClassIdFromClassName(className)
+    console.log(classId, '<--- class_id')
+    const deleted = await deleteClassSow(oldSowId)
+    console.log(deleted, '<-- deleted')
+    const insertedClassSow = await insertClassSow(classId, newSowId)
+    console.log(insertedClassSow, '<--- new class_sow')
+    return 
+}
+
+export const insertNewSow = async (yearGroup: number) => {
     const { data, error } = await supabase
         .from('sow')
         .insert({ id: Math.ceil(Date.now() + Math.random()), year: yearGroup })
@@ -39,8 +79,6 @@ export const insertNewWeeks = async () => {
     const { data: insertedWeekIds, error: insertingWeeksError } = await supabase
         .rpc('insert_weeks_returning_ids', { week_numbers: weekNumbers })
     if (insertingWeeksError) return Promise.reject(insertingWeeksError)
-    console.log(insertedWeekIds)
-    console.log(insertedWeekIds.map((week: Week) => week.week_id), '<-- new manip of weekids')
     return insertedWeekIds.map((week: Week) => week.week_id)
 }
 
@@ -77,6 +115,61 @@ export const insertWeeksTags = async (weekIds: number[], tagIds: number[][]) => 
     }));
 }
 
+
+export const deleteOldWeeksTags = async (weeks: Week[]) => {
+    return await Promise.all(weeks.map(async (week: Week) => {
+        const { data, error } = await supabase
+            .from('weeks_tags')
+            .delete()
+            .eq('week_id', week.week_id)
+            .select()
+
+        if (error) return Promise.reject(error)
+        return data
+    }))
+}
+
+export const insertSoWWeeks = async (weekIds: number[], sowId: number) => {
+    return await Promise.all(weekIds.map(async (weekId: number) => {
+        const { data, error } = await supabase
+            .from('sow_weeks')
+            .insert({ sow_id: sowId, week_id: weekId })
+            .select()
+
+        if (error) return Promise.reject(error)
+
+        return data
+    }))
+}
+
+export const getClassIdFromClassName = async (className: string) => {
+    const { data: classIdData, error: classIdError } = await supabase
+        .from('classes')
+        .select('id')
+        .eq('class_name', className)
+    if (classIdError) return Promise.reject(classIdError)
+    if (classIdData) return classIdData[0]?.id
+}
+
+export const deleteClassSow = async (sowId: number) => {
+    const { error: deleteError, data: deleted } = await supabase
+        .from('class_sow')
+        .delete()
+        .eq('sow_id', sowId)
+        .select()
+    if (deleteError) return Promise.reject(deleteError);
+    if (deleted) return deleted
+}
+
+export const insertClassSow = async (classId: number, sowId: number) => {
+    const { data: updatedClass_sow, error: updatedClass_sowError } = await supabase
+        .from('class_sow')
+        .insert({ class_id: classId, sow_id: sowId })
+        .select('sow_id')
+    if (updatedClass_sowError) return Promise.reject(updatedClass_sowError)
+    if (updatedClass_sow) return updatedClass_sow
+}
+
 export const addOrUpdateSow = async ({ className, weeks }: AddOrUpdateSowProps, token: Token) => {
 
     if (token) supabase.auth.setSession(token)
@@ -87,15 +180,11 @@ export const addOrUpdateSow = async ({ className, weeks }: AddOrUpdateSowProps, 
     if (currentSowError) return Promise.reject(currentSowError)
 
     const currentSowId = currentSowData[0].sow_id
-    let newSowId = null
+
     const yearMatch = className.match(/^\d+/);
     const yearGroup = yearMatch ? +yearMatch[0] : null
-
-    if (currentSowId && currentSowId >= 1 && currentSowId <= 7) {
-        if (!yearGroup) {
-            return Promise.reject(new Error("Invalid className format; unable to extract year."));
-        }
-        newSowId = await createNewSow(yearGroup)
+    if (!yearGroup) {
+        return Promise.reject(new Error("Invalid className format; unable to extract year."));
     }
 
     const insertedWeekIds = await insertNewWeeks()
@@ -103,83 +192,13 @@ export const addOrUpdateSow = async ({ className, weeks }: AddOrUpdateSowProps, 
     const weeksTags = await insertWeeksTags(insertedWeekIds, tagIds)
     console.log(weeksTags, '<--- weeksTags')
 
-    if (newSowId) {
-        const sow_weeks = await Promise.all(insertedWeekIds.map(async (week: { week_id: number }) => {
-            const weekId = week.week_id
-            const { data, error } = await supabase
-                .from('sow_weeks')
-                .insert({ sow_id: newSowId, week_id: weekId })
-                .select()
-
-            if (error) return Promise.reject(error)
-
-            return data
-        }))
-
-        console.log(sow_weeks, '<--- new sow_weeks')
-
-        //Update class_sow with the new sow_id for the class
-
-        const { data: classIdData, error: classIdError } = await supabase
-            .from('classes')
-            .select('id')
-            .eq('class_name', className)
-        if (classIdError) return Promise.reject(classIdError)
-        const classId = classIdData[0].id
-        console.log(classId)
-        console.log(currentSowId)
-        const { error: deleteError, data: deleted } = await supabase
-            .from('class_sow')
-            .delete()
-            .eq('sow_id', currentSowId)
-            .select()
-
-        if (deleteError) {
-            return Promise.reject(deleteError);
-        }
-        console.log(deleted, '<-- deleted')
-        const { data: updatedClass_sow, error: updatedClass_sowError } = await supabase
-            .from('class_sow')
-            .insert({ class_id: classId, sow_id: newSowId })
-            .select('sow_id')
-        if (updatedClass_sowError) return Promise.reject(updatedClass_sowError)
-        console.log(updatedClass_sow)
-        return { className, weeks }
+    if (currentSowId && currentSowId >= 1 && currentSowId <= 7) {
+        await addSow({ yearGroup, weekIds: insertedWeekIds, className, oldSowId: currentSowId, weeks });
     }
-
-    if (!newSowId) {
-        const sow_weeks = await Promise.all(insertedWeekIds.map(async (weekId: number, index: number) => {
-            const oldWeekId = weeks[index].week_id
-            const { data, error } = await supabase
-                .rpc('update_sow_week', {
-                    current_sow_id: currentSowId,
-                    old_week_id: oldWeekId,
-                    new_week_id: weekId
-                })
-
-            if (error) return Promise.reject(error);
-            return data
-        }))
-
-        if (currentSowId > 7) {
-            const deletedWeeksTags = await Promise.all(weeks.map(async (week: Week) => {
-                const { data, error } = await supabase
-                    .from('weeks_tags')
-                    .delete()
-                    .eq('week_id', week.week_id)
-                    .select()
-
-                if (error) return Promise.reject(error)
-                return data
-            })
-
-            )
-            console.log('deletedWeeksTags', deletedWeeksTags)
-        }
-        console.log(sow_weeks)
-        console.log('same sow_id, no change!')
-        return { className, weeks }
+    if (currentSowId && currentSowId > 7) {
+        await updateSow({ weekIds: insertedWeekIds, weeks, sowId: currentSowId, className })
     }
+    return { className, weeks }
 }
 
 
