@@ -33,7 +33,7 @@ export const checkRole = (requiredRole: string) => {
                 return
             }
 
-            if (user.user_role !== requiredRole && user.user_role!=='admin') {
+            if (user.user_role !== requiredRole && user.user_role!=='admin' && user.role!=='authenticated') {
                 next(Error('Access denied'))
                 return
             }
