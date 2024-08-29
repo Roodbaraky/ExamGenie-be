@@ -112,5 +112,6 @@
 
     "allowSyntheticDefaultImports": true
   },
-  "include": ["src/**/*", "src/types/**/*", "src/types", "types"]
+  "include": ["src/**/*", "src/types/**/*", "src/types", "types"],
+  "exclude": ["/dist"]
 }
