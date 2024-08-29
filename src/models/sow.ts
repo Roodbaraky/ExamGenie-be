@@ -1,5 +1,7 @@
+import { jwtDecode } from "jwt-decode";
 import { supabase } from "../database/supabaseClient";
 import { Token } from "../types/Auth";
+import { CustomUser } from "../middleware/user";
 
 
 export interface Week {
@@ -28,7 +30,7 @@ export const updateSow = async ({ weekIds, weeks, sowId }: UpdateSowProps) => {
     const deletedWeeksTags = await deleteOldWeeksTags(weeks)
     console.log(deletedWeeksTags, '<--- deletedWeeksTags')
     console.log('same sow_id, no change!')
-    return 
+    return
 }
 
 export const updateSowWeeks = async (weekIds: number[], weeks: Week[], sowId: number) => {
@@ -62,7 +64,7 @@ export const addSow = async ({ yearGroup, weekIds, className, oldSowId }: AddSow
     console.log(deleted, '<-- deleted')
     const insertedClassSow = await insertClassSow(classId, newSowId)
     console.log(insertedClassSow, '<--- new class_sow')
-    return 
+    return
 }
 
 export const insertNewSow = async (yearGroup: number) => {
@@ -74,7 +76,7 @@ export const insertNewSow = async (yearGroup: number) => {
     return data[0]?.id
 }
 
-export const insertNewWeeks = async () => {
+export const insertWeeks = async () => {
     const weekNumbers = Array.from({ length: 39 }, (_, i) => i + 1);
     const { data: insertedWeekIds, error: insertingWeeksError } = await supabase
         .rpc('insert_weeks_returning_ids', { week_numbers: weekNumbers })
@@ -170,33 +172,40 @@ export const insertClassSow = async (classId: number, sowId: number) => {
     if (updatedClass_sow) return updatedClass_sow
 }
 
-export const addOrUpdateSow = async ({ className, weeks }: AddOrUpdateSowProps, token: Token) => {
-
-    if (token) supabase.auth.setSession(token)
-
+export const getSowIdFromClassName = async (className: string) => {
     const { data: currentSowData, error: currentSowError } = await supabase
         .rpc('get_sow_id_by_class_name', { classname: className });
-
     if (currentSowError) return Promise.reject(currentSowError)
+    return currentSowData[0].sow_id
+}
 
-    const currentSowId = currentSowData[0].sow_id
-
+export const getYearGroupFromClassName = (className: string) => {
     const yearMatch = className.match(/^\d+/);
     const yearGroup = yearMatch ? +yearMatch[0] : null
     if (!yearGroup) {
         return Promise.reject(new Error("Invalid className format; unable to extract year."));
     }
+    return yearGroup
+}
 
-    const insertedWeekIds = await insertNewWeeks()
+export const addOrUpdateSow = async ({ className, weeks }: AddOrUpdateSowProps, token: Token) => {
+
+    if (token) supabase.auth.setSession(token)
+    const role = (jwtDecode(token.access_token) as CustomUser)?.user_role ?? null
+
+    const currentSowId = await getSowIdFromClassName(className)
+    const yearGroup = await getYearGroupFromClassName(className)
+    const insertedWeekIds = await insertWeeks()
     const tagIds = await getTagIdsFromTags(weeks)
     const weeksTags = await insertWeeksTags(insertedWeekIds, tagIds)
     console.log(weeksTags, '<--- weeksTags')
-
-    if (currentSowId && currentSowId >= 1 && currentSowId <= 7) {
-        await addSow({ yearGroup, weekIds: insertedWeekIds, className, oldSowId: currentSowId, weeks });
-    }
-    if (currentSowId && currentSowId > 7) {
+    console.log(role)
+    if (currentSowId && currentSowId > 7 || role && role === 'admin') {
         await updateSow({ weekIds: insertedWeekIds, weeks, sowId: currentSowId, className })
+    }
+
+    if (currentSowId && currentSowId >= 1 && currentSowId <= 7 && role && role !== 'admin') {
+        await addSow({ yearGroup, weekIds: insertedWeekIds, className, oldSowId: currentSowId, weeks });
     }
     return { className, weeks }
 }
