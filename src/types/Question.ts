@@ -25,5 +25,6 @@ export interface FetchTagsFromSowProps {
     recallPeriod: number
 }
 export interface NewQuestion extends Question {
+    answerImage:string
     image: string
 }

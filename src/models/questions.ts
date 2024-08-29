@@ -160,6 +160,7 @@ export const postQuestions = async (questions: NewQuestion[], token: Token) => {
         const questionIds: number[] = []
         const tagIdsArr: number[][] = []
         const imgsArr: string[] = []
+        const answerImgsArr: string[] = []
         for (const question of questions) {
             await checkQuestionObjectIsValid(question)
             const questionId = await insertQuestions(question, token)
@@ -167,6 +168,7 @@ export const postQuestions = async (questions: NewQuestion[], token: Token) => {
             const tagIds = await fetchTagIdsFromQuestion(question)
             tagIdsArr.push(tagIds)
             imgsArr.push(question.image ? question.image : '')
+            answerImgsArr.push(question.answerImage ? question.answerImage : '')
         }
         const questionTagsInsertArr = tagIdsArr.map((tags: number[], index) => {
             return tags.map((tagId: number) => {
@@ -182,7 +184,11 @@ export const postQuestions = async (questions: NewQuestion[], token: Token) => {
         }
 
         const reconstructedImages = imgsArr.map((imgData) => convertFromBase64ToImage(imgData))
-        await uploadPNGsToBucket(questionIds, reconstructedImages, 'questions')
+        const reconstructedAnswerImages = answerImgsArr.map((imgData) => convertFromBase64ToImage(imgData))
+        await Promise.all([
+            uploadPNGsToBucket(questionIds, reconstructedImages, 'questions'),
+            uploadPNGsToBucket(questionIds, reconstructedAnswerImages, 'answers')
+        ])
         const imagesUploaded = await checkBucketUploads(questionIds, 'questions')
         if (!imagesUploaded) deleteEntriesForFailedUploads(questionIds, 'questions')
         return questionIds
