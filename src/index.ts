@@ -39,7 +39,7 @@ app.route('/upload')
 
 
 app.route('/classes')
-    .get(checkRole('moderator'), getClasses)
+    .get(getClasses)
 // .post(checkRole('admin'), addClass )
 
 

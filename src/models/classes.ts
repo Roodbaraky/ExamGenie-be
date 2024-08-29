@@ -7,7 +7,7 @@ export const fetchClasses = async (token?: Token) => {
     if (!token) throw Error('No token')
     const userId = token.user.id
     const user = jwtDecode(token?.access_token) as CustomUser
-    if (user.user_role === 'admin') {
+    if (user.user_role === 'admin'||!user?.user_role) {
         const { data, error } = await supabase
             .from('classes')
             .select('*')
