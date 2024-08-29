@@ -34,13 +34,14 @@ export const updateSow = async ({ weekIds, weeks, sowId }: UpdateSowProps) => {
 }
 
 export const updateSowWeeks = async (weekIds: number[], weeks: Week[], sowId: number) => {
-    return await Promise.all(weekIds.map(async (weekId: number, index: number) => {
-        const oldWeekId = weeks[index].week_id
+    if (!Array.isArray(weekIds)) return [];
+    return await Promise.all(weekIds?.map(async (weekId: number, index: number) => {
+        const oldWeekId = weeks[index]?.week_id
         const { data, error } = await supabase
             .rpc('update_sow_week', {
-                current_sow_id: sowId,
-                old_week_id: oldWeekId,
-                new_week_id: weekId
+                current_sow_id: sowId??0,
+                old_week_id: oldWeekId??0,
+                new_week_id: weekId??0
             })
 
         if (error) return Promise.reject(error);
@@ -81,11 +82,13 @@ export const insertWeeks = async () => {
     const { data: insertedWeekIds, error: insertingWeeksError } = await supabase
         .rpc('insert_weeks_returning_ids', { week_numbers: weekNumbers })
     if (insertingWeeksError) return Promise.reject(insertingWeeksError)
-    return insertedWeekIds.map((week: Week) => week.week_id)
+    return insertedWeekIds?.map((week: Week) => week.week_id)
 }
 
 export const getTagIdsFromTags = async (weeks: Week[]) => {
+    if (!Array.isArray(weeks)) return [];
     return await Promise.all(weeks?.map(async (week) => {
+        if (!Array.isArray(week?.tags)) return [];
         return Promise.all(week?.tags?.map(async (tag) => {
             const { data, error } = await supabase
                 .from('tags')
@@ -101,9 +104,11 @@ export const getTagIdsFromTags = async (weeks: Week[]) => {
 }
 
 export const insertWeeksTags = async (weekIds: number[], tagIds: number[][]) => {
-    return await Promise.all(weekIds.map(async (weekId, weekIndex: number) => {
+    if (!Array.isArray(weekIds)) return [];
+    return await Promise.all(weekIds?.map(async (weekId, weekIndex: number) => {
         const weekTagIds = tagIds[weekIndex]
-        return Promise.all(weekTagIds.map(async (tagId) => {
+        if (!Array.isArray(weekTagIds)) return [];
+        return Promise.all(weekTagIds?.map(async (tagId) => {
             const { data, error } = await supabase
                 .from('weeks_tags')
                 .insert({ week_id: weekId, tag_id: tagId })
