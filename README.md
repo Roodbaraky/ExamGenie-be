@@ -1,4 +1,4 @@
-# Math Education API
+# ExamGenie API
 
 ## Overview
 
