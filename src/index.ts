@@ -15,7 +15,10 @@ export const app = express();
 
 
 
-app.use(cors());
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE'], 
+    allowedHeaders: ['Content-Type', 'Authorization'] }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(authenticateToken)
