@@ -2,3 +2,7 @@
 .env
 /coverage
 /dist
+mycert.crt
+mycert.key
+fly.toml
+Dockerfile
