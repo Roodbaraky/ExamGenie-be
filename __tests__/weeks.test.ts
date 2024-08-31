@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it } from '@jest/globals';
 import { fetchWeeks } from '../src/models/weeks';
 
 interface Week {
@@ -18,7 +18,7 @@ describe('fetchWeeks', () => {
 
     it('should error if passed an invalid className', async () => {
         try {
-            const weeks = await fetchWeeks(99 as any)
+             await fetchWeeks(99 as any)
             throw Error('Wrong error')
         } catch (error) {
             expect(error as Error).toBe('Invalid className')
