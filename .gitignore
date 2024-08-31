@@ -4,5 +4,5 @@
 /dist
 mycert.crt
 mycert.key
-fly.toml
+
 Dockerfile
