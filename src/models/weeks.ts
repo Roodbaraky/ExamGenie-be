@@ -4,10 +4,12 @@ import { checkIfClassExists } from "./classes";
 
 
 export const isClassNameValid = (className: unknown) => {
-    if (typeof className !== 'string') return Promise.reject('Invalid className')
+    if (typeof className !== 'string') return Promise.reject(Error('Invalid className'))
 }
 
 export const fetchWeeks = async (className: string) => {
+
+    try {
         await isClassNameValid(className)
         await checkIfClassExists(className)
         const { data, error } = await supabase
@@ -17,9 +19,11 @@ export const fetchWeeks = async (className: string) => {
             return Promise.reject(error)
         }
         return data
-        ? data
-        : Promise.reject('Weeks data not found')
-   
-}
+            ? data
+            : Promise.reject(Error('Weeks data not found'))
 
+    } catch (error) {
+        return Promise.reject(error)
+    }
+}
 

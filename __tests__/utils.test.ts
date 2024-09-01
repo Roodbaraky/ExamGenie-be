@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { checkBucketUploads, getImgURLFromId, uploadPNGsToBucket } from '../src/utils/bucketFuncs';
 import { testImage } from './testImage';
 
+
 jest.mock('../src/database/supabaseClient', () => {
     let testData = {
         signedUrl: 'mockedSignedUrl',
