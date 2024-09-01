@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, expect, it } from '@jest/globals';
 import '../__mocks__/supabaseClient';
-import { fetchWeeks, isClassNameValid } from '../src/models/weeks';
+import { fetchWeeks } from '../src/models/weeks';
 import { checkIfClassExists } from '../src/models/classes';
 
 interface Week {

@@ -3,6 +3,12 @@ import { supabase } from "../database/supabaseClient";
 import { Token } from "../types/Auth";
 import { CustomUser } from "../middleware/user";
 
+
+export const isClassNameValid = (className: unknown) => {
+    if (typeof className !== 'string'||!(/\d+./).test(className)) return Promise.reject(Error('Invalid className'))
+        return true
+}
+
 export const fetchClasses = async (token?: Token) => {
     if (!token) throw Error('No token')
     const userId = token.user.id

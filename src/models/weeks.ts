@@ -1,14 +1,7 @@
 import { supabase } from "../database/supabaseClient";
-import { checkIfClassExists } from "./classes";
-
-
-
-export const isClassNameValid = (className: unknown) => {
-    if (typeof className !== 'string') return Promise.reject(Error('Invalid className'))
-}
+import { checkIfClassExists, isClassNameValid } from "./classes";
 
 export const fetchWeeks = async (className: string) => {
-
     try {
         await isClassNameValid(className)
         await checkIfClassExists(className)

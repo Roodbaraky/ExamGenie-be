@@ -5,7 +5,7 @@
   "testTimeout": 15000,
   "scripts": {
     "start": "node index.js",
-    "test": "jest",
+    "test": "jest --watch",
     "build": "tsc -p tsconfig.build.json",
     "coverage": "vitest run --coverage",
     "dev": "nodemon src/index.ts",
