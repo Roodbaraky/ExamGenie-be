@@ -3,16 +3,19 @@ import { supabase } from "../database/supabaseClient";
 export const getImgURLFromId = async (id: number, bucketName: string) => {
     const { data, error } = await supabase.storage
         .from(bucketName)
-        .createSignedUrl(`public/${id}.png`, 60 * 60);
+        .createSignedUrl(`public/${id}.png`, 3600);
 
     if (error) {
         return Promise.reject(error)
     }
-    return data.signedUrl
+    return data?.signedUrl
 
 }
 
 export const uploadPNGsToBucket = async (itemIds: number[], imageArr: Buffer[], bucketName: string) => {
+    if (!itemIds || itemIds?.length < 1) return Promise.reject(Error('Invalid imageIds'))
+    if (!imageArr || imageArr?.length < 1) return Promise.reject(Error('Invalid images'))
+    if (!bucketName || typeof bucketName !== 'string') return Promise.reject(Error('Invalid bucketName'))
     for (let i = 0; i < imageArr.length; i++) {
         const { data, error } = await supabase.storage
             .from(bucketName)
@@ -37,16 +40,16 @@ export const uploadPNGsToBucket = async (itemIds: number[], imageArr: Buffer[], 
 }
 
 export const checkBucketUploads = async (itemIds: number[], bucketName: string) => {
+    if (!bucketName || typeof bucketName !== 'string') return Promise.reject(Error('Invalid bucketName'))
+    if (!itemIds.every((itemId) => typeof itemId === 'number')) return Promise.reject(Error('Invalid itemIds'))
     const expectedFilenames = itemIds.map((result) => result + '.png')
     const { data, error } = await supabase.storage
         .from(bucketName)
         .list('public')
-    if (error) throw error
+    if (error) return Promise.reject(error)
 
-    const fileNames = data.map((file) => file.name)
-    expectedFilenames.forEach((expectedFilename) => {
-        if (fileNames.includes(expectedFilename)) return false
-    }
-    )
-    return true
+    const fileNames = data?.map((file) => file.name)
+    return fileNames.every((fileName) => expectedFilenames.includes(fileName));
+
+
 }

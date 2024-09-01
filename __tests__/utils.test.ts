@@ -1,60 +1,168 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, expect, it } from '@jest/globals';
-import { getImgURLFromId } from '../src/utils/bucketFuncs'
-import { supabase } from "../src/database/supabaseClient";
+import { beforeEach, describe, expect, it, jest } from '@jest/globals';
+import { checkBucketUploads, getImgURLFromId, uploadPNGsToBucket } from '../src/utils/bucketFuncs';
+import { testImage } from './testImage';
+import { error } from 'console';
 
-// import { convertFromBase64ToImage } from '../src/utils/utils';
-// import { testImage } from './testImage';
-// import { testImageString } from './testImageString';
+jest.mock('../src/database/supabaseClient', () => {
+    let testData = {
+        signedUrl: 'mockedSignedUrl',
+    };
+    let testError: Error | null = null;
 
-// // describe('Utils', () => {
-// //     describe('convertFromBase64ToImage', () => {
-// //         it('should convert valid base64 strings to image buffers', () => {
-// //             const actual = convertFromBase64ToImage(testImage)
-// //             const expected = Buffer.from(testImageString)
-// //             expect(actual).toEqual(expected)
-// //         })
-// //     })
-// // })
-// Jest seems to have its own ideas about encoding that are different to node, so this runs indefinitely...
-jest.mock('../src/database/supabaseClient', () => ({
-    supabase: {
+    const createSignedUrlMock = jest.fn(() => ({
+        data: testData,
+        error: testError,
+    }));
+
+    const uploadMock = jest.fn((imgUrl: string) => ({
+        data: testData,
+        error: testError,
+    }))
+
+    const listMock = jest.fn((folderName: string) => ({
+        data: testData,
+        error: testError
+    }))
+
+    const fromMock = jest.fn(() => ({
+        createSignedUrl: createSignedUrlMock,
+        upload: uploadMock,
+        list: listMock
+    }));
+
+    const mockSupabaseClient = {
         storage: {
-            from: jest.fn(() => ({
-                createSignedUrl: jest.fn(),
-            })),
+            from: fromMock,
         },
-    },
-}));
+    };
+
+    return {
+        supabase: mockSupabaseClient,
+        setTestData: (newData: any) => {
+            testData = newData;
+        },
+        setTestError: (error: Error) => {
+            testError = error
+        }
+    };
+});
+
+beforeEach(() => {
+    jest.clearAllMocks();
+    const { setTestData, setTestError } = jest.requireMock('../src/database/supabaseClient') as any;
+    setTestData({ signedUrl: 'mockedSignedUrl' });
+    setTestError(null);
+});
 
 describe('getImgURLFromId', () => {
-    beforeEach(() => {
-       
-        const mockCreateSignedUrl = supabase.storage.from('questions').createSignedUrl as jest.Mock;
-        mockCreateSignedUrl.mockReset();
-    });
-
-    it('should return a URL string when passed an imageId', async () => {
-        const mockCreateSignedUrl = supabase.storage.from('questions').createSignedUrl as jest.Mock;
-
-        mockCreateSignedUrl.mockResolvedValue({
-            data: { signedUrl: 'www.image.com' },
-            error: null,
-        });
-
+    it('should return a signed URL when passed an imageId', async () => {
+        const { setTestData, supabase } = jest.requireMock('../src/database/supabaseClient') as any;
+        setTestData({ signedUrl: 'www.image.com' });
         const result = await getImgURLFromId(1, 'questions');
         expect(result).toEqual('www.image.com');
+        expect(supabase.storage.from).toHaveBeenCalledWith('questions');
+        expect(supabase.storage.from('questions').createSignedUrl).toHaveBeenCalledWith('public/1.png', 3600);
     });
 
-    it('should throw an error when createSignedUrl fails', async () => {
-        const mockCreateSignedUrl = supabase.storage.from('questions').createSignedUrl as jest.Mock;
+    it('should return and error when passed an invalid id/bucketName', async () => {
+        const { setTestError } = jest.requireMock('../src/database/supabaseClient') as any;
+        setTestError(Error('Invalid input data'))
+        try {
+            const result = await getImgURLFromId(null as any, null as any) as any
+            expect(result).toBeUndefined()
+        }
+        catch (error) {
+            expect((error as Error).message).toBe('Invalid input data')
 
-   
-        mockCreateSignedUrl.mockResolvedValue({
-            data: null,
-            error: new Error('Failed to create signed URL'),
-        });
-
-        await expect(getImgURLFromId(1, 'questions')).rejects.toThrow('Failed to create signed URL');
-    });
+        }
+    })
 });
+
+describe('uploadPNGsToBucket', () => {
+    it('should log successfully uploaded image/question details on success', async () => {
+        const { setTestData, supabase } = jest.requireMock('../src/database/supabaseClient') as any;
+        const log = jest.spyOn(console, 'log').mockImplementation(() => { })
+        setTestData('1.png')
+        await uploadPNGsToBucket([1, 2, 3], [Buffer.from(testImage), Buffer.from(testImage), Buffer.from(testImage)], 'questions')
+        expect(supabase.storage.from).toHaveBeenCalledWith('questions')
+        expect(supabase.storage.from('questions').upload).toHaveBeenCalledWith('public/1.png', Buffer.from(testImage), { "cacheControl": "3600", "contentType": "image/png" });
+        expect(supabase.storage.from('questions').upload).toHaveBeenCalledWith('public/2.png', Buffer.from(testImage), { "cacheControl": "3600", "contentType": "image/png" });
+        expect(supabase.storage.from('questions').upload).toHaveBeenCalledWith('public/3.png', Buffer.from(testImage), { "cacheControl": "3600", "contentType": "image/png" });
+        expect(log).toHaveBeenCalledTimes(3)
+        expect(log).toHaveBeenCalledWith('Successfully uploaded image for question 1:', '1.png');
+        expect(log).toHaveBeenCalledWith('Successfully uploaded image for question 2:', '1.png');
+        expect(log).toHaveBeenCalledWith('Successfully uploaded image for question 3:', '1.png');
+        log.mockRestore()
+    });
+
+    it('should error if passed invalid images', async () => {
+        try {
+            const result = await uploadPNGsToBucket([1, 2, 3] as any, null as any, 'questions') as any
+            throw Error('wrong error')
+
+        } catch (error) {
+            expect((error as Error).message).toBe('Invalid images')
+        }
+    });
+
+    it('should error if passed invalid itemIds', async () => {
+        try {
+            const result = await uploadPNGsToBucket(null as any, [Buffer.from(testImage), Buffer.from(testImage), Buffer.from(testImage)], 'questions') as any
+            throw Error('wrong error')
+
+        } catch (error) {
+            expect((error as Error).message).toBe('Invalid imageIds')
+        }
+    });
+
+    it('should error if passed invalid bucketName', async () => {
+        try {
+            const result = await uploadPNGsToBucket([1, 2, 3] as any, [Buffer.from(testImage), Buffer.from(testImage), Buffer.from(testImage)], null as any) as any
+            throw Error('wrong error')
+        } catch (error) {
+            expect((error as Error).message).toBe('Invalid bucketName')
+        }
+    });
+})
+
+describe('checkBucketUploads', () => {
+    it('should return true if files exist in the bucket corresponding to itemIds', async () => {
+        const { setTestData, supabase } = jest.requireMock('../src/database/supabaseClient') as any;
+        setTestData([{ name: '1.png' }, { name: '2.png' }, { name: '3.png' }])
+        const result = await checkBucketUploads([1, 2, 3], 'questions')
+        expect(result).toBe(true)
+        expect(supabase.storage.from).toBeCalledWith('questions')
+        expect(supabase.storage.from('questions').list).toBeCalledWith('public')
+        expect(supabase.storage.from('questions').list).toHaveBeenCalledTimes(1)
+    });
+
+    it('should return false if files do not exist in the bucket', async () => {
+        const { setTestData, supabase } = jest.requireMock('../src/database/supabaseClient') as any;
+        setTestData([{ name: '1.png' }, { name: '2.png' }, { name: '3.png' }])
+        const result = await checkBucketUploads([4, 5, 6], 'questions')
+        expect(result).toBe(false)
+        expect(supabase.storage.from).toBeCalledWith('questions')
+        expect(supabase.storage.from('questions').list).toBeCalledWith('public')
+        expect(supabase.storage.from('questions').list).toHaveBeenCalledTimes(1)
+    });
+
+    it('should error if passed invalid bucketName', async () => {
+        try {
+            await checkBucketUploads([1,2,3], 99 as any)
+            throw Error('wrong error')
+        } catch (error) {
+            expect((error as Error).message).toBe('Invalid bucketName')
+        }
+    });
+
+    it('should error if passed invalid itemIds', async () => {
+        try {
+            await checkBucketUploads(['a' as any, 'b', 'c'], 'questions')
+            throw Error('wrong error')
+        } catch (error) {
+            expect((error as Error).message).toBe('Invalid itemIds')
+        }
+    });
+})
