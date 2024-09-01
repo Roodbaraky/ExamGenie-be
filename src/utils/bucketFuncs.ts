@@ -1,6 +1,7 @@
 import { supabase } from "../database/supabaseClient";
 
 export const getImgURLFromId = async (id: number, bucketName: string) => {
+    if (!id || !bucketName) return Promise.reject(Error('Invalid input data'))
     const { data, error } = await supabase.storage
         .from(bucketName)
         .createSignedUrl(`public/${id}.png`, 3600);

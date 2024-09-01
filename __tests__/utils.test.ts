@@ -3,7 +3,6 @@
 import { beforeEach, describe, expect, it, jest } from '@jest/globals';
 import { checkBucketUploads, getImgURLFromId, uploadPNGsToBucket } from '../src/utils/bucketFuncs';
 import { testImage } from './testImage';
-import { error } from 'console';
 
 jest.mock('../src/database/supabaseClient', () => {
     let testData = {
@@ -67,16 +66,25 @@ describe('getImgURLFromId', () => {
     });
 
     it('should return and error when passed an invalid id/bucketName', async () => {
-        const { setTestError } = jest.requireMock('../src/database/supabaseClient') as any;
-        setTestError(Error('Invalid input data'))
         try {
             const result = await getImgURLFromId(null as any, null as any) as any
             expect(result).toBeUndefined()
         }
         catch (error) {
             expect((error as Error).message).toBe('Invalid input data')
-
         }
+    });
+
+    it('should handle supabase errors gracefully', async () => {
+        const { setTestError, supabase } = jest.requireMock('../src/database/supabaseClient') as any;
+        setTestError(Error('Supabase error'))
+        try {
+            const result = await getImgURLFromId(1, 'questions');
+            expect(result).toBeUndefined()
+        } catch (error) {
+            expect((error as Error).message).toBe('Supabase error')
+        }
+
     })
 });
 
@@ -125,6 +133,18 @@ describe('uploadPNGsToBucket', () => {
             expect((error as Error).message).toBe('Invalid bucketName')
         }
     });
+
+    it('should handle supabase errors gracefully', async () => {
+        const { setTestError, supabase } = jest.requireMock('../src/database/supabaseClient') as any;
+        setTestError(Error('Supabase error'))
+        try {
+            await uploadPNGsToBucket([1, 2, 3], [Buffer.from(testImage), Buffer.from(testImage), Buffer.from(testImage)], 'questions')
+        } catch (error) {
+            expect((error as Error).message).toBe('Supabase error')
+        }
+
+
+    })
 })
 
 describe('checkBucketUploads', () => {
@@ -150,7 +170,7 @@ describe('checkBucketUploads', () => {
 
     it('should error if passed invalid bucketName', async () => {
         try {
-            await checkBucketUploads([1,2,3], 99 as any)
+            await checkBucketUploads([1, 2, 3], 99 as any)
             throw Error('wrong error')
         } catch (error) {
             expect((error as Error).message).toBe('Invalid bucketName')
