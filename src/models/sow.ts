@@ -205,7 +205,7 @@ export const addOrUpdateSow = async ({ className, weeks }: AddOrUpdateSowProps, 
     const weeksTags = await insertWeeksTags(insertedWeekIds, tagIds)
     console.log(weeksTags, '<--- weeksTags')
     console.log(role)
-    if (currentSowId && currentSowId > 7 || role && role === 'admin') {
+    if (currentSowId && currentSowId > 7) {
         await updateSow({ weekIds: insertedWeekIds, weeks, sowId: currentSowId, className })
     }
 

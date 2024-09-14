@@ -59,8 +59,8 @@ describe('fetchClasses', () => {
     //         ...testUser,
     //         user_role: 'moderator'
     //     }));
-    //     // const { supabase } = jest.requireMock('../__mocks__/supabaseClient')
-    //     // const { supabase } = jest.requireMock('../src/database/supabaseClient.ts')
+    //     const  supabase  = jest.requireActual('../__mocks__/supabaseClient')
+    //     // const supabase = jest.requireMock('../src/database/supabaseClient.ts')
     //     await fetchClasses(mockToken)
     //     expect(supabase.rpc).toHaveBeenCalledWith('get_user_classes', { userid: `9979192d-d27e-43pp000-34da76ed051f` })
     // })
