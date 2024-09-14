@@ -90,6 +90,20 @@ async function insertQuestionImages(bucketName: string, destinationPath: string)
         console.error('Error uploading seed images:', error);
     }
 }
+async function insertAnswerImages(bucketName: string, destinationPath: string) {
+    try {
+        const files = fs.readdirSync('src/database/data/answerImages');
+
+        for (const file of files) {
+            const filePath = path.join('src/database/data/answerImages', file);
+
+
+            await uploadImage(filePath, bucketName, destinationPath);
+        }
+    } catch (error) {
+        console.error('Error uploading seed images:', error);
+    }
+}
 
 async function insertQuestions() {
     const { data, error } = await supabaseSeedClient
@@ -202,6 +216,7 @@ export async function seedDatabase() {
         await clearTable('tags', 'id');
         await clearTable('questions', 'id');
         await clearBucket('questions', 'public/')
+        await clearBucket('answers', 'public/')
 
         await insertQuestions()
         await insertTags()
@@ -213,6 +228,7 @@ export async function seedDatabase() {
         await insertSoWWeeks()
         await insertQuestionTags()
         await insertQuestionImages('questions', 'public/')
+        await insertAnswerImages('answers', 'public/')
     } catch (err) {
         console.error(err)
     }

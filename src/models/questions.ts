@@ -55,11 +55,8 @@ export const fetchQuestions = async ({
     FetchQuestionsProps
 ): Promise<Question[]> => {
     await validateFetchQuestionsInputs(tagsToUse, difficulties, limit)
-    // ^^ this might cause issues, not sure if returning promise.reject works??
     try {
-
         const activeDifficulties: DifficultyLevel[] = convertDifficultiesObjectIntoActiveDifficulties(difficulties)
-
         const { data, error } = await supabase
             .rpc('fetch_questions', {
                 input_tags: tagsToUse.length ? tagsToUse : null,

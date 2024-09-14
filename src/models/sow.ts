@@ -61,7 +61,7 @@ export const addSow = async ({ yearGroup, weekIds, className, oldSowId }: AddSow
     console.log(sowWeeks, '<--- new sow_weeks')
     const classId = await getClassIdFromClassName(className)
     console.log(classId, '<--- class_id')
-    const deleted = await deleteClassSow(oldSowId)
+    const deleted = await deleteClassSow(oldSowId, classId)
     console.log(deleted, '<-- deleted')
     const insertedClassSow = await insertClassSow(classId, newSowId)
     console.log(insertedClassSow, '<--- new class_sow')
@@ -158,11 +158,12 @@ export const getClassIdFromClassName = async (className: string) => {
     if (classIdData) return classIdData[0]?.id
 }
 
-export const deleteClassSow = async (sowId: number) => {
+export const deleteClassSow = async (sowId: number, classId:number) => {
     const { error: deleteError, data: deleted } = await supabase
         .from('class_sow')
         .delete()
         .eq('sow_id', sowId)
+        .eq('class_id', classId)
         .select()
     if (deleteError) return Promise.reject(deleteError);
     if (deleted) return deleted
@@ -207,9 +208,10 @@ export const addOrUpdateSow = async ({ className, weeks }: AddOrUpdateSowProps, 
     console.log(role)
     if (currentSowId && currentSowId > 7) {
         await updateSow({ weekIds: insertedWeekIds, weeks, sowId: currentSowId, className })
+        return
     }
 
-    if (currentSowId && currentSowId >= 1 && currentSowId <= 7 && role && role !== 'admin') {
+    if (currentSowId && currentSowId >= 1 && currentSowId <= 7 ) {
         await addSow({ yearGroup, weekIds: insertedWeekIds, className, oldSowId: currentSowId, weeks });
     }
     return { className, weeks }
