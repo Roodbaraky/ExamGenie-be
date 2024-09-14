@@ -65,7 +65,7 @@ export const addSow = async ({ yearGroup, weekIds, className, oldSowId }: AddSow
     console.log(deleted, '<-- deleted')
     const insertedClassSow = await insertClassSow(classId, newSowId)
     console.log(insertedClassSow, '<--- new class_sow')
-    return
+    return insertClassSow
 }
 
 export const insertNewSow = async (yearGroup: number) => {
