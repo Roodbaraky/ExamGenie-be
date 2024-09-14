@@ -65,7 +65,6 @@ export const addSow = async ({ yearGroup, weekIds, className, oldSowId }: AddSow
     console.log(deleted, '<-- deleted')
     const insertedClassSow = await insertClassSow(classId, newSowId)
     console.log(insertedClassSow, '<--- new class_sow')
-    return insertClassSow
 }
 
 export const insertNewSow = async (yearGroup: number) => {
@@ -208,7 +207,6 @@ export const addOrUpdateSow = async ({ className, weeks }: AddOrUpdateSowProps, 
     console.log(role)
     if (currentSowId && currentSowId > 7) {
         await updateSow({ weekIds: insertedWeekIds, weeks, sowId: currentSowId, className })
-        return
     }
 
     if (currentSowId && currentSowId >= 1 && currentSowId <= 7 ) {
