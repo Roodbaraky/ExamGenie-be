@@ -79,3 +79,22 @@ The API uses JWT for authentication. Include the JWT token in the Authorization 
 ## Error Handling
 
 The API includes centralized error handling middleware that provides consistent error responses with appropriate HTTP status codes.
+
+## Testing
+
+At the moment, tests are incomplete. Please refrain from running the existing tests as they will cause the database and storage buckets to be wiped clean, resulting in a loss of uploaded data.
+
+## 
+
+## A note to the next dev
+
+This project was developed as a rapid prototype to present the concept to the exam board. It is not built with inherent scalability in mind, but I am more than happy to work with you to get it there.
+
+I have included a Postgres dump file """database_dump.sql""", as I understand, this can be imported to reproduce and populate the tables according to the schema in Supabase, but if there are any issues I'm happy to migrate the Supabase project to your organisation. This may be necessary for the storage buckets which hold question and answer data, I am unsure.
+
+Some aims I have for the project in the future, which you can treat as suggestions:
+- I believe this back-end repo is mostly replacable with database functions, which you can use the Supabase client to invoke via *.rpc()*. It may actually be possible to have this be a standalone front-end application and use Supabase's REST API to fill in the gaps where postgres functions don't cut it.
+- The previous allows you to mitigate latency / costs from hosting the API separately, which was and continues to be an issue for me.
+- Rebuild this with OOP. Currently, it's very loosely built with functional programming and I undoubtedly violate these principles throughout. As I learn more about OOP in Java, I see how much better I could have structured my methods for unit testing, and integration testing without side-effects - I had real trouble mocking the Supabase client using Jest, what worked for some tests seemed to make real calls to the database in others.
+- Rebuild with / retrofit TDD: I raced to complete this as a prototype and with the little testing I did do, I noticed glaring refactoring opportunities which improved the code dramatically. I think the result would be much more performant and much fewer lines of much more readable code.
+
