@@ -9,7 +9,6 @@ export interface CustomUser extends User {
 export const checkUser = async (jwt: string) => {
     try {
         const user = jwtDecode(jwt) as CustomUser
-        //add validation of user attributes here
         return user;
     } catch (error) {
         return Promise.reject(error);

@@ -84,15 +84,4 @@ export const sowsWeeks: SoWWeek[] = [
     { sow_id: 7, week_id: 267 }, { sow_id: 7, week_id: 268 }, { sow_id: 7, week_id: 269 }, { sow_id: 7, week_id: 270 },
     { sow_id: 7, week_id: 271 }, { sow_id: 7, week_id: 272 }, { sow_id: 7, week_id: 273 },
 
-    // { sow_id: 8, week_id: 274 }, { sow_id: 8, week_id: 275 }, { sow_id: 8, week_id: 276 }, { sow_id: 8, week_id: 277 },
-    // { sow_id: 8, week_id: 278 }, { sow_id: 8, week_id: 279 }, { sow_id: 8, week_id: 280 }, { sow_id: 8, week_id: 281 },
-    // { sow_id: 8, week_id: 282 }, { sow_id: 8, week_id: 283 }, { sow_id: 8, week_id: 284 }, { sow_id: 8, week_id: 285 },
-    // { sow_id: 8, week_id: 286 }, { sow_id: 8, week_id: 287 }, { sow_id: 8, week_id: 288 }, { sow_id: 8, week_id: 289 },
-    // { sow_id: 8, week_id: 290 }, { sow_id: 8, week_id: 291 }, { sow_id: 8, week_id: 292 }, { sow_id: 8, week_id: 293 },
-    // { sow_id: 8, week_id: 294 }, { sow_id: 8, week_id: 295 }, { sow_id: 8, week_id: 296 }, { sow_id: 8, week_id: 297 },
-    // { sow_id: 8, week_id: 298 }, { sow_id: 8, week_id: 299 }, { sow_id: 8, week_id: 300 }, { sow_id: 8, week_id: 301 },
-    // { sow_id: 8, week_id: 302 }, { sow_id: 8, week_id: 303 }, { sow_id: 8, week_id: 304 }, { sow_id: 8, week_id: 305 },
-    // { sow_id: 8, week_id: 306 }, { sow_id: 8, week_id: 307 }, { sow_id: 8, week_id: 308 }, { sow_id: 8, week_id: 309 },
-    // { sow_id: 8, week_id: 310 }, { sow_id: 8, week_id: 311 }, { sow_id: 8, week_id: 312 }
-
 ];
