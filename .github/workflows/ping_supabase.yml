@@ -1,15 +1,14 @@
-name: Weekly Supabase Ping
+name: Keep Supabase Awake
 
 on:
   schedule:
-  
-    - cron: '0 8 * * 1'
-  workflow_dispatch: 
+    - cron: '0 6 * * 1' # Every Monday at 06:00 UTC
+  workflow_dispatch: # Optional: allow manual runs
 
 jobs:
-  ping:
+  ping-supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Supabase URL
+      - name: Send ping to Supabase
         run: |
-          curl -s -o /dev/null -w "%{http_code}" "${{ secrets.SUPABASE_URL }}"
+          curl -sSf https://agicdzhhufcedtbsniuz.supabase.co/rest/v1/ --head || exit 1
